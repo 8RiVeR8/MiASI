@@ -1,6 +1,7 @@
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
+backend/.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
@@ -34,3 +35,7 @@ build/
 
 ### Properties ###
 env.properties
+
+### Local input files ###
+input-diagrams/
+input-docs/
