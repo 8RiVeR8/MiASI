@@ -1,6 +1,6 @@
 package com.project.youtlix.repository;
 
-import com.project.youtlix.entity.Content;
+import com.project.youtlix.entity.library.Content;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,4 +1,4 @@
-package com.project.youtlix.entity;
+package com.project.youtlix.entity.library;
 
 import com.project.youtlix.entity.enums.ContentType;
 import com.project.youtlix.entity.enums.Genre;
@@ -15,6 +15,7 @@ import java.util.UUID;
 public class Content {
 
     @Id
+    @GeneratedValue
     @Column(name = "id")
     private UUID id;
 

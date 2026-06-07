@@ -163,12 +163,19 @@ CREATE TABLE recommendation.watchlists (
 );
 
 CREATE TABLE recommendation.watchlist_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
     watchlist_id UUID NOT NULL
         REFERENCES recommendation.watchlists(id)
             ON DELETE CASCADE,
-    content_id UUID NOT NULL,
+
+    content_id UUID NOT NULL
+        REFERENCES library.contents(id)
+            ON DELETE CASCADE,
+
     added_on TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY(watchlist_id, content_id)
+
+    UNIQUE (watchlist_id, content_id)
 );
 
 CREATE TABLE recommendation.ratings (
@@ -176,7 +183,9 @@ CREATE TABLE recommendation.ratings (
     viewer_id UUID NOT NULL
         REFERENCES auth.users(id)
         ON DELETE CASCADE,
-    content_id UUID NOT NULL,
+    content_id UUID NOT NULL
+        REFERENCES library.contents(id)
+        ON DELETE CASCADE,
     stars SMALLINT NOT NULL
         CHECK (stars BETWEEN 1 AND 5),
     rated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
