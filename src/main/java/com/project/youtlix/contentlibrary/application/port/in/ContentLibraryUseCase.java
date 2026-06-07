@@ -1,0 +1,38 @@
+package com.project.youtlix.contentlibrary.application.port.in;
+
+import com.project.youtlix.contentlibrary.domain.model.Content;
+import com.project.youtlix.contentlibrary.domain.model.ContentId;
+import com.project.youtlix.contentlibrary.domain.model.Duration;
+import com.project.youtlix.contentlibrary.domain.model.Metadata;
+import com.project.youtlix.contentlibrary.domain.model.Page;
+import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
+import com.project.youtlix.contentlibrary.domain.model.VideoFile;
+
+import java.util.List;
+
+/**
+ * Inbound port for PU5-PU10: browse, search, filter and manage catalog content.
+ */
+public interface ContentLibraryUseCase {
+
+    /** Browses available content page by page. */
+    List<Content> browse(Page page);
+
+    /** Searches content by keyword phrase. */
+    List<Content> searchByKeyword(String phrase);
+
+    /** Filters content by provided criteria. */
+    List<Content> filter(SearchCriteria criteria);
+
+    /** Adds a movie to the library. */
+    ContentId createMovie(Metadata metadata, Duration duration, VideoFile videoFile);
+
+    /** Adds a series to the library. */
+    ContentId createSeries(Metadata metadata);
+
+    /** Updates metadata of existing content. */
+    void updateMetadata(ContentId id, Metadata metadata);
+
+    /** Removes content from the library. */
+    void remove(ContentId id);
+}

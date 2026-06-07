@@ -34,3 +34,9 @@ build/
 
 ### Properties ###
 env.properties
+
+### Local input files ###
+input-diagrams/
+input-docs/
+### Local legacy backup ###
+local-legacy/
