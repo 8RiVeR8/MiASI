@@ -45,6 +45,11 @@ class SupabaseIdentityAdapterTest {
         }
 
         @Override
+        public void updateUser(String jwt, String newPassword) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public SupabaseUser getUser(String jwt) {
             return new SupabaseUser(id, "viewer@example.com", role, Map.of());
         }

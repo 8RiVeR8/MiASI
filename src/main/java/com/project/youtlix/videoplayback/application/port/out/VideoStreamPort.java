@@ -1,6 +1,5 @@
 package com.project.youtlix.videoplayback.application.port.out;
 
-import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.videoplayback.domain.model.VideoStream;
 
 /**

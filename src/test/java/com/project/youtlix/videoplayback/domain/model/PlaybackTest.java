@@ -1,7 +1,4 @@
 package com.project.youtlix.videoplayback.domain.model;
-
-import com.project.youtlix.authentication.domain.model.ViewerId;
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
 import com.project.youtlix.videoplayback.domain.model.event.PlaybackFinished;
 import com.project.youtlix.videoplayback.domain.model.event.PlaybackProgressSaved;
 import com.project.youtlix.videoplayback.domain.model.event.PlaybackStarted;
@@ -19,7 +16,7 @@ class PlaybackTest {
         Playback playback = new Playback(
                 PlaybackId.newId(),
                 new ViewerId(UUID.randomUUID()),
-                ContentId.newId()
+                new ContentId(UUID.randomUUID())
         );
 
         playback.start(PlaybackProgress.start());

@@ -1,6 +1,5 @@
 package com.project.youtlix.contentlibrary.domain.model;
 
-import com.project.youtlix.common.domain.model.DomainEvent;
 import com.project.youtlix.contentlibrary.domain.model.event.ContentAdded;
 import com.project.youtlix.contentlibrary.domain.model.event.ContentModified;
 import com.project.youtlix.contentlibrary.domain.model.event.ContentRemoved;
@@ -28,10 +27,19 @@ public abstract class Content {
      * @param metadata descriptive metadata
      */
     protected Content(ContentId id, Metadata metadata) {
+        this(id, metadata, false, true);
+    }
+
+    /**
+     * Recreates or creates a content aggregate with explicit event recording.
+     */
+    protected Content(ContentId id, Metadata metadata, boolean available, boolean recordAddedEvent) {
         this.id = Objects.requireNonNull(id, "id must not be null");
         this.metadata = Objects.requireNonNull(metadata, "metadata must not be null");
-        this.available = false;
-        recordEvent(new ContentAdded(id, metadata.title(), Instant.now()));
+        this.available = available;
+        if (recordAddedEvent) {
+            recordEvent(new ContentAdded(id, metadata.title(), Instant.now()));
+        }
     }
 
     /**

@@ -1,18 +1,19 @@
 package com.project.youtlix.recommendation.application.service;
 
-import com.project.youtlix.authentication.domain.model.ViewerId;
 import com.project.youtlix.common.application.port.out.DomainEventPublisher;
-import com.project.youtlix.common.domain.model.DomainEvent;
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
+import com.project.youtlix.contentlibrary.application.port.in.ContentMetadata;
+import com.project.youtlix.contentlibrary.domain.model.Genre;
+import com.project.youtlix.contentlibrary.domain.model.Keyword;
 import com.project.youtlix.recommendation.application.port.out.ContentCatalogPort;
-import com.project.youtlix.recommendation.application.port.out.ContentMetadata;
 import com.project.youtlix.recommendation.application.port.out.RatingRepository;
 import com.project.youtlix.recommendation.application.port.out.WatchActivityPort;
 import com.project.youtlix.recommendation.application.port.out.WatchlistRepository;
+import com.project.youtlix.recommendation.domain.model.ContentId;
 import com.project.youtlix.recommendation.domain.model.Rating;
 import com.project.youtlix.recommendation.domain.model.RecommendationList;
 import com.project.youtlix.recommendation.domain.model.RecommendationReason;
 import com.project.youtlix.recommendation.domain.model.StarRating;
+import com.project.youtlix.recommendation.domain.model.ViewerId;
 import com.project.youtlix.recommendation.domain.model.Watchlist;
 import com.project.youtlix.videoplayback.domain.model.WatchActivity;
 import org.junit.jupiter.api.Test;
@@ -97,15 +98,15 @@ class RecommendationUseCaseTest {
 
         @Override
         public ContentMetadata metadataOf(ContentId id) {
-            return new ContentMetadata("ACTION", List.of("hero"), 2026);
+            return new ContentMetadata(Genre.ACTION, List.of(new Keyword("hero")), 2026, "Hero");
         }
     }
 
     static class RecordingPublisher implements DomainEventPublisher {
-        final List<DomainEvent> events = new ArrayList<>();
+        final List<Object> events = new ArrayList<>();
 
         @Override
-        public void publish(DomainEvent event) {
+        public void publish(Object event) {
             events.add(event);
         }
     }

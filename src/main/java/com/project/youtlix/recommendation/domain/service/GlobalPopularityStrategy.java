@@ -1,10 +1,10 @@
 package com.project.youtlix.recommendation.domain.service;
 
-import com.project.youtlix.authentication.domain.model.ViewerId;
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
+import com.project.youtlix.recommendation.domain.model.ContentId;
 import com.project.youtlix.recommendation.domain.model.RecommendationList;
 import com.project.youtlix.recommendation.domain.model.RecommendationReason;
 import com.project.youtlix.recommendation.domain.model.RecommendedItem;
+import com.project.youtlix.recommendation.domain.model.ViewerId;
 
 import java.time.Instant;
 import java.util.List;

@@ -1,7 +1,5 @@
 package com.project.youtlix.recommendation.domain.model;
 
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
-
 import java.time.Instant;
 import java.util.Objects;
 

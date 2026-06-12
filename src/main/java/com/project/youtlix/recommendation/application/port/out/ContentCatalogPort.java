@@ -1,6 +1,7 @@
 package com.project.youtlix.recommendation.application.port.out;
 
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
+import com.project.youtlix.contentlibrary.application.port.in.ContentMetadata;
+import com.project.youtlix.recommendation.domain.model.ContentId;
 
 import java.util.List;
 

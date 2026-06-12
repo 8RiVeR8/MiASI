@@ -1,11 +1,12 @@
 package com.project.youtlix.common.application.port.out;
 
-import com.project.youtlix.common.domain.model.DomainEvent;
-
 import java.util.Collection;
 
 /**
- * Outbound port used by application services to publish domain events.
+ * Technical outbound port used by application services to publish domain events.
+ *
+ * <p>The event type is intentionally not shared because every bounded context
+ * defines its own DomainEvent contract.</p>
  */
 public interface DomainEventPublisher {
 
@@ -14,14 +15,14 @@ public interface DomainEventPublisher {
      *
      * @param event event produced by an aggregate
      */
-    void publish(DomainEvent event);
+    void publish(Object event);
 
     /**
      * Publishes all events from an aggregate.
      *
      * @param events events produced during one use case
      */
-    default void publishAll(Collection<? extends DomainEvent> events) {
+    default void publishAll(Collection<?> events) {
         events.forEach(this::publish);
     }
 }

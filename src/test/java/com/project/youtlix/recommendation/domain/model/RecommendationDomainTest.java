@@ -1,7 +1,5 @@
 package com.project.youtlix.recommendation.domain.model;
 
-import com.project.youtlix.authentication.domain.model.ViewerId;
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;

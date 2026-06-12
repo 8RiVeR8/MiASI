@@ -1,8 +1,8 @@
 package com.project.youtlix.videoplayback.domain.model.event;
 
-import com.project.youtlix.authentication.domain.model.ViewerId;
-import com.project.youtlix.common.domain.model.DomainEvent;
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
+import com.project.youtlix.videoplayback.domain.model.ContentId;
+import com.project.youtlix.videoplayback.domain.model.DomainEvent;
+import com.project.youtlix.videoplayback.domain.model.ViewerId;
 
 import java.time.Instant;
 

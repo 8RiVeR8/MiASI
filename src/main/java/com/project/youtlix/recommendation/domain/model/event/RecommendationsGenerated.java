@@ -1,7 +1,7 @@
 package com.project.youtlix.recommendation.domain.model.event;
 
-import com.project.youtlix.authentication.domain.model.ViewerId;
-import com.project.youtlix.common.domain.model.DomainEvent;
+import com.project.youtlix.recommendation.domain.model.DomainEvent;
+import com.project.youtlix.recommendation.domain.model.ViewerId;
 
 import java.time.Instant;
 

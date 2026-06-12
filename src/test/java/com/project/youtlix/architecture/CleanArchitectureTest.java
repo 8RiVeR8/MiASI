@@ -40,6 +40,48 @@ class CleanArchitectureTest {
     }
 
     @Test
+    void webAdaptersDoNotCallDomainServicesDirectly() throws IOException {
+        try (Stream<Path> files = javaFiles()) {
+            files.filter(path -> normalized(path).contains("/infrastructure/in/web/"))
+                    .forEach(path -> assertThat(read(path))
+                            .describedAs(path.toString())
+                            .doesNotContain(".domain.service."));
+        }
+    }
+
+    @Test
+    void recommendationDomainUsesItsOwnIdentityValueObjects() throws IOException {
+        try (Stream<Path> files = javaFiles()) {
+            files.filter(path -> normalized(path).contains("/recommendation/domain/"))
+                    .forEach(path -> assertThat(read(path))
+                            .describedAs(path.toString())
+                            .doesNotContain("authentication.domain.model.ViewerId")
+                            .doesNotContain("contentlibrary.domain.model.ContentId"));
+        }
+    }
+
+    @Test
+    void boundedContextEventsDoNotUseACommonDomainContract() throws IOException {
+        try (Stream<Path> files = javaFiles()) {
+            files.filter(path -> normalized(path).contains("/domain/model/DomainEvent.java")
+                            || normalized(path).contains("/domain/model/event/"))
+                    .forEach(path -> assertThat(read(path))
+                            .describedAs(path.toString())
+                            .doesNotContain("common.domain.model.DomainEvent"));
+        }
+    }
+
+    @Test
+    void commonPackageDoesNotDefineADomainModel() throws IOException {
+        try (Stream<Path> files = javaFiles()) {
+            assertThat(files.map(this::normalized)
+                    .filter(path -> path.contains("/common/domain/"))
+                    .toList())
+                    .isEmpty();
+        }
+    }
+
+    @Test
     void productionCodeUsesOnlyKnownTopLevelModules() throws IOException {
         Set<String> allowed = Set.of(
                 "authentication",
@@ -69,6 +111,18 @@ class CleanArchitectureTest {
                     .filter(name -> name.contains("Account") || name.contains("Password") || name.contains("Session"))
                     .toList())
                     .containsExactly("SupabaseSession.java");
+        }
+    }
+
+    @Test
+    void authenticationIntegrationDoesNotContainPlaceholderAdapters() throws IOException {
+        Path authPath = MAIN_PACKAGE.resolve("authentication");
+        try (Stream<Path> files = Files.walk(authPath)) {
+            assertThat(files.filter(path -> path.toString().endsWith(".java"))
+                    .map(Path::getFileName)
+                    .map(Path::toString)
+                    .toList())
+                    .doesNotContain("NotConfiguredSupabaseAuthApi.java");
         }
     }
 

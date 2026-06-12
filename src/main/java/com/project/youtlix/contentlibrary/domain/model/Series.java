@@ -19,6 +19,13 @@ public class Series extends Content {
     }
 
     /**
+     * Recreates a series aggregate from persistence.
+     */
+    public Series(ContentId id, Metadata metadata, boolean available, boolean recordAddedEvent) {
+        super(id, metadata, available, recordAddedEvent);
+    }
+
+    /**
      * Adds a season to the series aggregate.
      *
      * @param season season entity

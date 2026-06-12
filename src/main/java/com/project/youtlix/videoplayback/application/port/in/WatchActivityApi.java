@@ -1,6 +1,6 @@
 package com.project.youtlix.videoplayback.application.port.in;
 
-import com.project.youtlix.authentication.domain.model.ViewerId;
+import com.project.youtlix.videoplayback.domain.model.ViewerId;
 import com.project.youtlix.videoplayback.domain.model.WatchActivity;
 
 import java.util.List;

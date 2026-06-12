@@ -19,6 +19,22 @@ public class Movie extends Content {
         this.videoFile = Objects.requireNonNull(videoFile, "videoFile must not be null");
     }
 
+    /**
+     * Recreates a movie aggregate from persistence.
+     */
+    public Movie(
+            ContentId id,
+            Metadata metadata,
+            Duration duration,
+            VideoFile videoFile,
+            boolean available,
+            boolean recordAddedEvent
+    ) {
+        super(id, metadata, available, recordAddedEvent);
+        this.duration = Objects.requireNonNull(duration, "duration must not be null");
+        this.videoFile = Objects.requireNonNull(videoFile, "videoFile must not be null");
+    }
+
     public Duration duration() {
         return duration;
     }

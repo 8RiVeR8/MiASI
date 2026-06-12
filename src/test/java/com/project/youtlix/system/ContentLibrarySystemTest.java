@@ -1,9 +1,12 @@
 package com.project.youtlix.system;
 
+import com.project.youtlix.authentication.application.port.out.IdentityProvider;
+import com.project.youtlix.authentication.domain.model.Role;
+import com.project.youtlix.authentication.domain.model.UserIdentity;
+import com.project.youtlix.authentication.domain.model.ViewerId;
 import com.project.youtlix.common.application.port.out.DomainEventPublisher;
-import com.project.youtlix.common.domain.model.DomainEvent;
 import com.project.youtlix.contentlibrary.application.port.out.ContentRepository;
-import com.project.youtlix.contentlibrary.application.service.ContentLibraryService;
+import com.project.youtlix.contentlibrary.application.service.ContentLibraryApplicationService;
 import com.project.youtlix.contentlibrary.domain.model.Content;
 import com.project.youtlix.contentlibrary.domain.model.ContentId;
 import com.project.youtlix.contentlibrary.domain.model.Genre;
@@ -14,13 +17,18 @@ import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentController;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
+import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
+import com.project.youtlix.recommendation.domain.model.RecommendationList;
+import com.project.youtlix.recommendation.domain.model.StarRating;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,10 +37,14 @@ class ContentLibrarySystemTest {
     @Test
     void contentCreationPathRunsFromWebAdapterToRepositoryPort() {
         InMemoryContentRepository repository = new InMemoryContentRepository();
-        ContentLibraryService service = new ContentLibraryService(repository, new NoOpPublisher());
-        ContentController controller = new ContentController(service);
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, new NoOpPublisher());
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.LIBRARY_ADMIN)
+        );
 
-        controller.createMovie(new ContentRequest(
+        controller.create("Bearer jwt", new ContentRequest(
                 "Clean Architecture",
                 "System test path",
                 "thumb",
@@ -44,7 +56,7 @@ class ContentLibrarySystemTest {
                 List.of("pl")
         ));
 
-        List<ContentResponse> response = controller.browse(0, 20);
+        List<ContentResponse> response = controller.browse("Bearer jwt", 1, 20).contents();
 
         assertThat(response).hasSize(1);
         assertThat(response.getFirst().title()).isEqualTo("Clean Architecture");
@@ -100,7 +112,55 @@ class ContentLibrarySystemTest {
 
     static class NoOpPublisher implements DomainEventPublisher {
         @Override
-        public void publish(DomainEvent event) {
+        public void publish(Object event) {
+        }
+    }
+
+    static class FixedIdentityProvider implements IdentityProvider {
+        private final Role role;
+        private final ViewerId viewerId = new ViewerId(UUID.randomUUID());
+
+        FixedIdentityProvider(Role role) {
+            this.role = role;
+        }
+
+        @Override
+        public UserIdentity currentIdentity(String jwt) {
+            return new UserIdentity(viewerId, role);
+        }
+
+        @Override
+        public boolean verify(String jwt) {
+            return true;
+        }
+    }
+
+    static class NoRecommendations implements RecommendationUseCase {
+        @Override
+        public RecommendationList generateFor(com.project.youtlix.recommendation.domain.model.ViewerId viewerId) {
+            return new RecommendationList(viewerId, Instant.now(), List.of());
+        }
+
+        @Override
+        public void rate(
+                com.project.youtlix.recommendation.domain.model.ViewerId viewerId,
+                com.project.youtlix.recommendation.domain.model.ContentId contentId,
+                StarRating stars
+        ) {
+        }
+
+        @Override
+        public void addToWatchlist(
+                com.project.youtlix.recommendation.domain.model.ViewerId viewerId,
+                com.project.youtlix.recommendation.domain.model.ContentId contentId
+        ) {
+        }
+
+        @Override
+        public void removeFromWatchlist(
+                com.project.youtlix.recommendation.domain.model.ViewerId viewerId,
+                com.project.youtlix.recommendation.domain.model.ContentId contentId
+        ) {
         }
     }
 }

@@ -1,8 +1,5 @@
 package com.project.youtlix.videoplayback.domain.model;
 
-import com.project.youtlix.authentication.domain.model.ViewerId;
-import com.project.youtlix.common.domain.model.DomainEvent;
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
 import com.project.youtlix.videoplayback.domain.model.event.PlaybackFinished;
 import com.project.youtlix.videoplayback.domain.model.event.PlaybackProgressSaved;
 import com.project.youtlix.videoplayback.domain.model.event.PlaybackStarted;
@@ -29,11 +26,24 @@ public class Playback {
      * Creates a playback aggregate.
      */
     public Playback(PlaybackId id, ViewerId viewerId, ContentId contentId) {
+        this(id, viewerId, contentId, PlaybackProgress.start(), PlaybackStatus.PAUSED);
+    }
+
+    /**
+     * Recreates a playback aggregate from persistence.
+     */
+    public Playback(
+            PlaybackId id,
+            ViewerId viewerId,
+            ContentId contentId,
+            PlaybackProgress progress,
+            PlaybackStatus status
+    ) {
         this.id = Objects.requireNonNull(id, "id must not be null");
         this.viewerId = Objects.requireNonNull(viewerId, "viewerId must not be null");
         this.contentId = Objects.requireNonNull(contentId, "contentId must not be null");
-        this.progress = PlaybackProgress.start();
-        this.status = PlaybackStatus.PAUSED;
+        this.progress = Objects.requireNonNull(progress, "progress must not be null");
+        this.status = Objects.requireNonNull(status, "status must not be null");
     }
 
     /**

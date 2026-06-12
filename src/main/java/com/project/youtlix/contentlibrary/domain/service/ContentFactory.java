@@ -16,13 +16,17 @@ public class ContentFactory {
      * Creates a movie aggregate.
      */
     public Movie createMovie(Metadata metadata, Duration duration, VideoFile videoFile) {
-        return new Movie(ContentId.newId(), metadata, duration, videoFile);
+        Movie movie = new Movie(ContentId.newId(), metadata, duration, videoFile);
+        movie.publish();
+        return movie;
     }
 
     /**
      * Creates a series aggregate.
      */
     public Series createSeries(Metadata metadata) {
-        return new Series(ContentId.newId(), metadata);
+        Series series = new Series(ContentId.newId(), metadata);
+        series.publish();
+        return series;
     }
 }

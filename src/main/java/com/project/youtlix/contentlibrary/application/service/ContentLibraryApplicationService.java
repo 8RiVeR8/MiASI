@@ -15,6 +15,8 @@ import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
 import com.project.youtlix.contentlibrary.domain.model.Series;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.contentlibrary.domain.service.ContentFactory;
+import com.project.youtlix.contentlibrary.domain.service.ContentSearchService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,45 +25,49 @@ import java.util.List;
  * Application service coordinating library use cases and catalog OHS queries.
  */
 @Service
-public class ContentLibraryService implements ContentLibraryUseCase, ContentCatalogApi {
+public class ContentLibraryApplicationService implements ContentLibraryUseCase, ContentCatalogApi {
 
     private final ContentRepository contentRepository;
     private final DomainEventPublisher eventPublisher;
     private final ContentFactory contentFactory;
+    private final ContentSearchService contentSearchService;
 
     /**
      * Creates the content library application service.
      */
-    public ContentLibraryService(ContentRepository contentRepository, DomainEventPublisher eventPublisher) {
-        this(contentRepository, eventPublisher, new ContentFactory());
+    @Autowired
+    public ContentLibraryApplicationService(ContentRepository contentRepository, DomainEventPublisher eventPublisher) {
+        this(contentRepository, eventPublisher, new ContentFactory(), new ContentSearchService());
     }
 
     /**
      * Constructor useful for tests with an explicit factory.
      */
-    public ContentLibraryService(
+    public ContentLibraryApplicationService(
             ContentRepository contentRepository,
             DomainEventPublisher eventPublisher,
-            ContentFactory contentFactory
+            ContentFactory contentFactory,
+            ContentSearchService contentSearchService
     ) {
         this.contentRepository = contentRepository;
         this.eventPublisher = eventPublisher;
         this.contentFactory = contentFactory;
+        this.contentSearchService = contentSearchService;
     }
 
     @Override
     public List<Content> browse(Page page) {
-        return contentRepository.page(page);
+        return contentSearchService.browse(contentRepository.page(page));
     }
 
     @Override
     public List<Content> searchByKeyword(String phrase) {
-        return contentRepository.byKeyword(phrase);
+        return contentSearchService.searchByKeyword(contentRepository.byKeyword(phrase), phrase);
     }
 
     @Override
     public List<Content> filter(SearchCriteria criteria) {
-        return contentRepository.matching(criteria);
+        return contentSearchService.filter(contentRepository.matching(criteria), criteria);
     }
 
     @Override

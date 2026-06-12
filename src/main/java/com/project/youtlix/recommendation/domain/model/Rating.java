@@ -1,8 +1,5 @@
 package com.project.youtlix.recommendation.domain.model;
 
-import com.project.youtlix.authentication.domain.model.ViewerId;
-import com.project.youtlix.common.domain.model.DomainEvent;
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
 import com.project.youtlix.recommendation.domain.model.event.ContentRated;
 
 import java.time.Instant;
@@ -25,12 +22,26 @@ public class Rating {
 
     /** Creates a rating aggregate. */
     public Rating(RatingId id, ViewerId viewerId, ContentId contentId, StarRating stars, Instant ratedAt) {
+        this(id, viewerId, contentId, stars, ratedAt, true);
+    }
+
+    /** Creates or recreates a rating aggregate with explicit event recording. */
+    public Rating(
+            RatingId id,
+            ViewerId viewerId,
+            ContentId contentId,
+            StarRating stars,
+            Instant ratedAt,
+            boolean recordRatedEvent
+    ) {
         this.id = Objects.requireNonNull(id, "id must not be null");
         this.viewerId = Objects.requireNonNull(viewerId, "viewerId must not be null");
         this.contentId = Objects.requireNonNull(contentId, "contentId must not be null");
         this.stars = Objects.requireNonNull(stars, "stars must not be null");
         this.ratedAt = Objects.requireNonNull(ratedAt, "ratedAt must not be null");
-        occurredEvents.add(new ContentRated(viewerId, contentId, stars, ratedAt));
+        if (recordRatedEvent) {
+            occurredEvents.add(new ContentRated(viewerId, contentId, stars, ratedAt));
+        }
     }
 
     /** Changes rating value and emits ContentRated event. */

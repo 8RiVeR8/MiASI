@@ -1,7 +1,7 @@
 package com.project.youtlix.contentlibrary.domain.model.event;
 
-import com.project.youtlix.common.domain.model.DomainEvent;
 import com.project.youtlix.contentlibrary.domain.model.ContentId;
+import com.project.youtlix.contentlibrary.domain.model.DomainEvent;
 
 import java.time.Instant;
 

@@ -1,5 +1,7 @@
 package com.project.youtlix.authentication.infrastructure.out.supabase;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Map;
 import java.util.UUID;
 
@@ -11,5 +13,10 @@ import java.util.UUID;
  * @param role role name from Supabase metadata/profile
  * @param userMetadata raw metadata from Supabase
  */
-public record SupabaseUser(UUID id, String email, String role, Map<String, Object> userMetadata) {
+public record SupabaseUser(
+        UUID id,
+        String email,
+        String role,
+        @JsonProperty("user_metadata") Map<String, Object> userMetadata
+) {
 }

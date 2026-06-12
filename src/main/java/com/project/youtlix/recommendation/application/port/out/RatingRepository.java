@@ -1,8 +1,8 @@
 package com.project.youtlix.recommendation.application.port.out;
 
-import com.project.youtlix.authentication.domain.model.ViewerId;
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
+import com.project.youtlix.recommendation.domain.model.ContentId;
 import com.project.youtlix.recommendation.domain.model.Rating;
+import com.project.youtlix.recommendation.domain.model.ViewerId;
 
 import java.util.List;
 import java.util.Optional;

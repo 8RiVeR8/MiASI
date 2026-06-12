@@ -1,19 +1,19 @@
 package com.project.youtlix.videoplayback.application.service;
 
-import com.project.youtlix.authentication.domain.model.ViewerId;
 import com.project.youtlix.common.application.port.out.DomainEventPublisher;
-import com.project.youtlix.common.domain.model.DomainEvent;
 import com.project.youtlix.contentlibrary.application.port.in.ContentCatalogApi;
 import com.project.youtlix.contentlibrary.application.port.in.ContentMetadata;
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
-import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.videoplayback.application.port.out.PlaybackRepository;
+import com.project.youtlix.videoplayback.application.port.out.VideoFile;
 import com.project.youtlix.videoplayback.application.port.out.VideoStreamPort;
+import com.project.youtlix.videoplayback.domain.model.ContentId;
 import com.project.youtlix.videoplayback.domain.model.Playback;
 import com.project.youtlix.videoplayback.domain.model.PlaybackId;
 import com.project.youtlix.videoplayback.domain.model.PlaybackProgress;
 import com.project.youtlix.videoplayback.domain.model.PlaybackStatus;
+import com.project.youtlix.videoplayback.domain.model.ViewerId;
 import com.project.youtlix.videoplayback.domain.model.VideoStream;
+import com.project.youtlix.videoplayback.domain.service.PlaybackService;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -35,10 +35,11 @@ class PlaybackUseCaseTest {
                 repository,
                 new FakeContentCatalogApi(),
                 new FakeVideoStreamPort(),
-                new RecordingPublisher()
+                new RecordingPublisher(),
+                new PlaybackService()
         );
         ViewerId viewerId = new ViewerId(UUID.randomUUID());
-        ContentId contentId = ContentId.newId();
+        ContentId contentId = new ContentId(UUID.randomUUID());
 
         service.play(viewerId, contentId);
         PlaybackId playbackId = repository.onlyPlayback().id();
@@ -83,18 +84,20 @@ class PlaybackUseCaseTest {
 
     static class FakeContentCatalogApi implements ContentCatalogApi {
         @Override
-        public List<ContentId> popularContent(int limit) {
+        public List<com.project.youtlix.contentlibrary.domain.model.ContentId> popularContent(int limit) {
             return List.of();
         }
 
         @Override
-        public ContentMetadata metadataOf(ContentId id) {
+        public ContentMetadata metadataOf(com.project.youtlix.contentlibrary.domain.model.ContentId id) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public VideoFile videoFileOf(ContentId id) {
-            return new VideoFile("cdn://movie", List.of("pl"));
+        public com.project.youtlix.contentlibrary.domain.model.VideoFile videoFileOf(
+                com.project.youtlix.contentlibrary.domain.model.ContentId id
+        ) {
+            return new com.project.youtlix.contentlibrary.domain.model.VideoFile("cdn://movie", List.of("pl"));
         }
     }
 
@@ -106,11 +109,12 @@ class PlaybackUseCaseTest {
     }
 
     static class RecordingPublisher implements DomainEventPublisher {
-        final List<DomainEvent> events = new ArrayList<>();
+        final List<Object> events = new ArrayList<>();
 
         @Override
-        public void publish(DomainEvent event) {
+        public void publish(Object event) {
             events.add(event);
         }
     }
+
 }

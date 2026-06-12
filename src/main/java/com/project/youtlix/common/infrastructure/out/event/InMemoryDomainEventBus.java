@@ -1,7 +1,6 @@
 package com.project.youtlix.common.infrastructure.out.event;
 
 import com.project.youtlix.common.application.port.out.DomainEventPublisher;
-import com.project.youtlix.common.domain.model.DomainEvent;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -17,7 +16,7 @@ import java.util.List;
 @Component
 public class InMemoryDomainEventBus implements DomainEventPublisher {
 
-    private final List<DomainEvent> publishedEvents = new ArrayList<>();
+    private final List<Object> publishedEvents = new ArrayList<>();
 
     /**
      * Stores a domain event in memory so synchronous handlers can be added later.
@@ -25,7 +24,7 @@ public class InMemoryDomainEventBus implements DomainEventPublisher {
      * @param event event produced by a module
      */
     @Override
-    public void publish(DomainEvent event) {
+    public void publish(Object event) {
         publishedEvents.add(event);
     }
 
@@ -34,7 +33,7 @@ public class InMemoryDomainEventBus implements DomainEventPublisher {
      *
      * @return published domain events
      */
-    public List<DomainEvent> publishedEvents() {
+    public List<Object> publishedEvents() {
         return Collections.unmodifiableList(publishedEvents);
     }
 }

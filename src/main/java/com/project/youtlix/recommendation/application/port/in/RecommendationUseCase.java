@@ -1,9 +1,9 @@
 package com.project.youtlix.recommendation.application.port.in;
 
-import com.project.youtlix.authentication.domain.model.ViewerId;
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
+import com.project.youtlix.recommendation.domain.model.ContentId;
 import com.project.youtlix.recommendation.domain.model.RecommendationList;
 import com.project.youtlix.recommendation.domain.model.StarRating;
+import com.project.youtlix.recommendation.domain.model.ViewerId;
 
 /**
  * Inbound port for PU11-PU13 recommendation use cases.

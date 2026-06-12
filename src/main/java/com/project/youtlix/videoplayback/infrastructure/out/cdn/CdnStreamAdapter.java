@@ -1,6 +1,6 @@
 package com.project.youtlix.videoplayback.infrastructure.out.cdn;
 
-import com.project.youtlix.contentlibrary.domain.model.VideoFile;
+import com.project.youtlix.videoplayback.application.port.out.VideoFile;
 import com.project.youtlix.videoplayback.application.port.out.VideoStreamPort;
 import com.project.youtlix.videoplayback.domain.model.VideoStream;
 import org.springframework.stereotype.Component;

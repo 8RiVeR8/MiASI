@@ -1,7 +1,6 @@
 package com.project.youtlix.contentlibrary.application.service;
 
 import com.project.youtlix.common.application.port.out.DomainEventPublisher;
-import com.project.youtlix.common.domain.model.DomainEvent;
 import com.project.youtlix.contentlibrary.application.port.in.ContentMetadata;
 import com.project.youtlix.contentlibrary.application.port.out.ContentRepository;
 import com.project.youtlix.contentlibrary.domain.model.Content;
@@ -32,7 +31,7 @@ class ContentLibraryUseCaseTest {
     void createMovieMakesItBrowsableAndExposesCatalogMetadata() {
         InMemoryContentRepository repository = new InMemoryContentRepository();
         RecordingPublisher publisher = new RecordingPublisher();
-        ContentLibraryService service = new ContentLibraryService(repository, publisher);
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, publisher);
         Metadata metadata = new Metadata(
                 "DDD Movie",
                 "Architecture",
@@ -107,10 +106,10 @@ class ContentLibraryUseCaseTest {
     }
 
     static class RecordingPublisher implements DomainEventPublisher {
-        private final List<DomainEvent> events = new ArrayList<>();
+        private final List<Object> events = new ArrayList<>();
 
         @Override
-        public void publish(DomainEvent event) {
+        public void publish(Object event) {
             events.add(event);
         }
     }

@@ -48,9 +48,8 @@ public class SupabaseIdentityAdapter implements IdentityProvider {
     }
 
     private Role mapRole(String role) {
-        if (role == null || role.isBlank()) {
-            return Role.VIEWER;
-        }
-        return Role.valueOf(role.trim().toUpperCase(Locale.ROOT));
+        return role != null && Role.LIBRARY_ADMIN.name().equals(role.trim().toUpperCase(Locale.ROOT))
+                ? Role.LIBRARY_ADMIN
+                : Role.VIEWER;
     }
 }

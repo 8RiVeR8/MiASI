@@ -1,9 +1,9 @@
 package com.project.youtlix.videoplayback.application.port.in;
 
-import com.project.youtlix.authentication.domain.model.ViewerId;
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
+import com.project.youtlix.videoplayback.domain.model.ContentId;
 import com.project.youtlix.videoplayback.domain.model.PlaybackId;
 import com.project.youtlix.videoplayback.domain.model.PlaybackProgress;
+import com.project.youtlix.videoplayback.domain.model.ViewerId;
 import com.project.youtlix.videoplayback.domain.model.VideoStream;
 
 /**
