@@ -1,0 +1,806 @@
+================================================================================
+FILE: MIASI-W Architektura mikrousług.pdf
+================================================================================
+--- page 1 ---
+dr inż. Paweł Głuchowski
+Wydział Informatyki i Telekomunikacji, Politechnika Wrocławska
+zapisano
+4 VI 2026
+Creative Commons
+BY-NC-ND 4.0
+Modelowanie i Analiza
+Systemów Informatycznych
+Architektura mikrousług
+--- page 2 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 2
+spis treści
+(1)  SOA – architektura zorientowana na usługi
+(2)  Monolit
+(3)  MSA – architektura mikrousług
+(4)  Mikrousługa
+(5)  Granice i sprzężenia mikrousług
+(6)  Współpraca mikrousług
+(7)  Przepływ pracy i rozproszone transakcje
+(8)  Wsparcie technologiczne
+(9)  Wady i zalety MSA
+--- page 3 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 3
+opracowane m. in. na podstawie
+● Budowanie mikrousług. Projektowanie drobnoziarnistych systemów. Wydanie II
+– S. Newman; wyd. Helion, 2022
+
+--- page 4 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 4
+SOA – architektura zorientowana na usługi
+--- page 5 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 5
+SOA – architektura zorientowana na usługi
+SOA – Architektura zorientowana na usługi /Service-Oriented Architecture/
+● Celem architektury jest spełnianie określonych usług dziedziny przez system.
+● Działanie systemu jest podzielone na współpracujące ze sobą usługi.
+– Komunikacja między usługami zwykle odbywa się przez wywołania w sieci usług, zamiast wywołań operacji w granicach procesu.
+● Jeśli wszystkie usługi są sprzężone z jedną bazą danych – muszą być wdrażane razem.
+● Usługę można zamienić na inną usługę, jeśli realizuje ten sam interfejs (kontrakt usługi).
+--- page 6 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 6
+SOA – architektura zorientowana na usługi
+Usługa
+● Usługa może być:
+– techniczna (np. RESTful, interfejs SOAP, typ komunikatu)
+– biznesowa (strategia biznesu, przypadek użycia, realizacja celów biznesowych).
+● Usługa biznesowa może, ale nie musi być pojedynczą poddziedziną:
+– Może obejmować kilka poddziedzin i kilka kontekstów ograniczonych.
+– Architektura nie może wpływać na rozmiar modelu dziedziny.
+● Usługa zwykle jest oddzielnym procesem systemu operacyjnego.
+● W architekturze sześciokątnej:
+– klientów usługi umieszcza się po lewej stronie sześciokąta,
+– model dziedziny umieszcza się w środku sześciokąta, otoczony usługami biznesowymi.
+
+================================================================================
+FILE: MIASI-W Architektura sterowana modelem (1).pdf
+================================================================================
+--- page 1 ---
+dr inż. Paweł Głuchowski
+Wydział Informatyki i Telekomunikacji, Politechnika Wrocławska
+zapisano
+28 V 2026
+Creative Commons
+BY-NC-ND 4.0
+Modelowanie i Analiza
+Systemów Informatycznych
+Architektura sterowana modelem
+--- page 2 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 2
+spis treści
+(1)  MDA – architektura sterowana modelem
+(2)  Poziomy abstrakcji modelu
+(3)  Metamodel
+(4)  Język XMI
+(5)  Język OCL
+(6)  Transformacja M2M
+(7)  Transformacja M2T
+(8)  Narzędziowe wsparcie MDA
+(9)  Wybrane narzędzia wspierające MDA
+--- page 3 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 3
+MDA – architektura sterowana modelem
+--- page 4 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 4
+MDA – architektura sterowana modelem
+MDA – architektura sterowana modelem /Model-Driven Architecture/ – ogólny zarys
+● Zautomatyzowane przekształcanie modelu systemu i jego zautomatyzowana implementacja do kodu:
+– Opiera sią na szablonach transformacji.
+– Korzysta z języka OCL (Object Constraint Language).
+– Model ma formalną definicję (XML-owa reprezentacja języków modelowania UML i Ecore).
+● Model można przekształcić w inny model:
+– Model koncepcji wymagań systemu → model logiki działania systemu → model implementacji systemu.
+– Automatycznie lub półautomatycznie.
+● Model implementacji systemu można przekształcić w kod:
+– Model implementacji systemu → kod implementacji systemu.
+– Automatycznie lub półautomatycznie.
+– Różna implementacja tego samego modelu – w różnych językach programowania.
+● Wspiera MDD w tworzeniu modelu implementacji i w jego automatycznej implementacji.
+
+--- page 5 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 5
+MDA – architektura sterowana modelem
+MDA – architektura sterowana modelem /Model-Driven Architecture/
+na podst. MDA - The Architecture Of Choice For A Changing World
+● Metoda projektowania, rozwijania i implementowania oprogramowania:
+– oparta na budowie modeli (abstrakcji systemu) i ich transformacji.
+● Funkcjonalności i usługi biznesowe są graficznie modelowane:
+– głównie w języku UML,
+– niezależnie od wybranej technologii ich implementacji.
+● Izolacja rdzenia oprogramowania od techniki jego implementacji i cyklu zmian:
+– Logika biznesowa pozostaje zgodna z biznesowymi wymaganiami,
+– a technologia oprogramowania może się rozwijać i zmieniać.
+● „Wszystko jest modelem”
+– zamiast klasycznego podejścia do programowania, gdzie „wszystko jest obiektem”.
+● Model dziedziny jednoznacznie definiuje pojęcia dziedziny np. w języku OWL (Web Ontology Language).
+
+--- page 6 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 6
+Poziomy abstrakcji modelu
+
+================================================================================
+FILE: MIASI-W Architektura systemu informatycznego (1).pdf
+================================================================================
+--- page 1 ---
+dr inż. Paweł Głuchowski
+Wydział Informatyki i Telekomunikacji, Politechnika Wrocławska
+zapisano
+3 VI 2026
+Creative Commons
+BY-NC-ND 4.0
+Modelowanie i Analiza
+Systemów Informatycznych
+Architektura systemu informatycznego
+--- page 2 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 2
+spis treści
+(1)  Architektura warstwowa
+(2)  Architektura portów i adapterów (sześciokątna)
+(3)  Moduły kodu
+(4)  Mapowanie danych wejściowych i wyjściowych
+(5)  SOA – architektura zorientowana na usługi
+(6)  REST (styl architektury SOA)
+(7)  CQRS (styl architektury SOA)
+(8)  EDA – architektura sterowana zdarzeniami
+(9)  Potoki i filtry (styl architektury EDA)
+(10)  Saga (styl architektury EDA)
+(11)  Magazynowanie zdarzeń w architekturze EDA
+--- page 3 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 3
+opracowane m. in. na podstawie
+● DDD dla architektów oprogramowania
+– V. Vernon; wyd. Helion, 2016
+● Domain-Driven Design. Zapanuj nad złożonym systemem informatycznym
+– E. Evans; wyd. Helion, 2015
+● Nie bój się ubrudzić rąk, tworząc czystą architekturę. Projektowanie aplikacji wysokiej jakości na przykładach w Javie.
+Wydanie II
+– T. Hombergs; wyd. Helion, 2024
+
+--- page 4 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 4
+Architektura warstwowa
+--- page 5 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 5
+Architektura warstwowa
+Architektura warstwowa
+● Architektura systemu dzieli się na różne warstwy:
+– pełnią różne zadania,
+– są w relacji wyższa-niższa lub zewnętrzna-wewnętrzna.
+● Uniezależnienie modelu dziedziny i logiki biznesowej (przypadków użycia) od:
+– infrastruktury (np. trwałego magazynu danych),
+– prezentacji (np. interfejsu użytkownika),
+– usług aplikacji (koordynacji działań systemu).
+● W relacji warstw wyższa-niższa:
+– Warstwa może być zależna tylko od niższych warstw.
+● Tylko z nimi może się komunikować.
+– Obiekt warstwy może być zależny tylko od obiektów tej samej warstwy
+i obiektów niższych warstw.
+– Niższa warstwa może być tylko luźno związana z wyższymi warstwami.
+● Stosując wzorce projektowe Obserwator lub Mediator.
+
+--- page 6 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 6
+Architektura warstwowa
+Warstwa konfiguracji
+● Dodatkowa warstwa techniczna – w czasie uruchomienia systemu składa go z jego części.
+● Mechanizm wstrzykiwania zależności
+● Konstruuje obiekty poszczególnych warstw.
+● Inicjuje powiązania między warstwami (ich granicznymi obiektami).
+
+
+================================================================================
+FILE: MIASI-W DDD w modelowaniu systemu informatycznego.pdf
+================================================================================
+--- page 1 ---
+dr inż. Paweł Głuchowski
+Wydział Informatyki i Telekomunikacji, Politechnika Wrocławska
+zapisano
+15 V 2026
+Creative Commons
+BY-NC-ND 4.0
+Modelowanie i Analiza
+Systemów Informatycznych
+DDD w modelowaniu systemu informatycznego
+--- page 2 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 2
+spis treści
+(1)  Tematyka wykładów
+(2)  DDD – projektowanie sterowane dziedziną
+(3)  MDD – projektowanie sterowane modelem
+(4)  MDA – architektura sterowana modelem
+(5)  Modelowanie strategiczne
+(6)  Modelowanie taktyczne
+(7)  SOLID – dobre reguły programowania 
+obiektowego
+(8)  Architektura portów i adapterów (sześciokątna)
+(9)  EDA – architektura sterowana zdarzeniami
+(10)  SOA – architektura zorientowana na usługi
+(11)  MSA – architektura mikrousług
+(12)  TDD – projektowanie sterowane testami
+(13)  Podsumowanie
+(14)  Polecane źródła wiedzy
+--- page 3 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 3
+Tematyka Wykładów
+--- page 4 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 4
+Tematyka Wykładów
+Metody modelowania systemów informatycznych
+● DDD – projektowanie sterowane dziedziną
+● MDD – projektowanie sterowane modelem
+● MDA – architektura sterowana modelem
+Modelowanie strategiczne i modelowanie taktyczne
+● Modelowanie strategiczne
+● Modelowanie taktyczne
+Czysta architektura oparta na usługach
+● SOLID – dobre reguły programowania obiektowego
+● Architektura portów i adapterów (sześciokątna)
+● EDA – architektura sterowana zdarzeniami
+● SOA – architektura zorientowana na usługi
+● MSA – architektura mikrousług
+Testowanie modelu i jego implementacji
+● TDD – projektowanie sterowane testami
+--- page 5 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 5
+DDD – projektowanie sterowane dziedziną
+--- page 6 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 6
+DDD – projektowanie sterowane dziedziną
+DDD – projektowanie sterowane dziedziną /Domain-Driven Development/
+● Połączenie:
+– myślenie ekspertów dziedziny o dziedzinie + umiejętności deweloperów oprogramowania.
+– Wspólny zespół ekspertów dziedziny i deweloperów.
+● Przekształcenie myślowego modelu ekspertów dziedziny
+w implementacyjny model przydatny dla biznesu.
+– Rozpoznanie rzeczywistych reguł biznesowych, niezmienników danych i ochrona przed błędami.
+● Głównym celem DDD jest:
+– stworzenie kontekstu ograniczonego
+– z kompletnym, dobrze językowo zdefiniowanym modelem dziedziny.
+
+================================================================================
+FILE: MIASI-W Modelowanie strategiczne - dziedzina, kontekst, język.pdf
+================================================================================
+--- page 1 ---
+dr inż. Paweł Głuchowski
+Wydział Informatyki i Telekomunikacji, Politechnika Wrocławska
+zapisano
+11 VI 2026
+Creative Commons
+BY-NC-ND 4.0
+Modelowanie i Analiza
+Systemów Informatycznych
+Modelowanie strategiczne
+– dziedzina, kontekst, język
+--- page 2 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 2
+spis treści
+(1)  DDD – projektowanie sterowane dziedziną
+(2)  Model dziedziny
+(3)  Język wszechobecny
+(4)  Kontekst ograniczony
+(5)  Mapowanie kontekstów ograniczonych
+(6)  Kanwa kontekstu ograniczonego
+(7)  Przestrzeń problemu i przestrzeń rozwiązania
+(8)  Wizja dziedziny
+(9)  MDD – projektowanie sterowane modelem
+--- page 3 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 3
+opracowane m. in. na podstawie
+● DDD dla architektów oprogramowania
+– V. Vernon; wyd. Helion, 2016
+● Domain-Driven Design. Zapanuj nad złożonym systemem informatycznym
+– E. Evans; wyd. Helion, 2015
+
+--- page 4 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 4
+DDD – projektowanie sterowane dziedziną
+--- page 5 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 5
+DDD – projektowanie sterowane dziedziną
+DDD – projektowanie sterowane dziedziną /Domain-Driven Development/
+● Połączenie:
+– myślenie ekspertów dziedziny o dziedzinie + umiejętności deweloperów oprogramowania.
+– Wspólny zespół ekspertów dziedziny i deweloperów.
+● Przekształcenie myślowego modelu ekspertów dziedziny
+w implementacyjny model przydatny dla biznesu.
+– Rozpoznanie rzeczywistych reguł biznesowych, niezmienników danych i ochrona przed błędami.
+● Głównym celem DDD jest:
+– stworzenie kontekstu ograniczonego
+– z kompletnym, dobrze językowo zdefiniowanym modelem dziedziny.
+● Dziedzina opisuje działalność organizacji używającej systemu informatycznego i otaczający ją świat:
+– np. pieniądze i księgowanie operacji finansowych (system księgowości),
+– np. pasażer i rezerwacja lotu (system lotów pasażerskich).
+--- page 6 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 6
+DDD – projektowanie sterowane dziedziną
+Modelowanie dziedziny
+● Model i jego implementacja wzajemnie na siebie wpływają.
+– Interpretacją kodu jest zrozumienie prowadzącego do niego modelu.
+● Elementy wydajnego modelowania:
+na podst. E. Evans, Domain-Driven Design. Zapanuj nad złożonym systemem informatycznym
+– Powiązanie modelu z jego implementacją:
+● Rozpoczęcie od uproszczonego prototypu programu.
+● Rozbudowa programu w kolejnych iteracjach.
+– Doskonalenie języka zdefiniowanego modelem:
+● Eksperci dziedziny wyjaśniają programistom pojęcia z dziedziny.
+● Programiści wyjaśniają ekspertom znaczenie diagramów wyjaśniających model.
+– Wypracowanie modelu wzbogaconego wiedzą:
+● Model pokazuje obiekty (nie jest prostym schematem danych) i reguły ich zachowania.
+● Model zawiera wiedzę biznesową i dziedzinową.
+– Destylacja modelu:
+● W kolejnych iteracjach: dodawanie nowych elementów i usuwanie elementów już zbędnych.
+– Dyskusja i eksperymenty:
+● Eksperymentowanie z różnymi alternatywnymi modelami.
+● Nawet wypowiedzi w języku mówionym mogą wstępnie testować wykonalność omawianego modelu.
+
+================================================================================
+FILE: MIASI-W Modelowanie taktyczne - encja, obiekt wartości, agregat (2).pdf
+================================================================================
+--- page 1 ---
+dr inż. Paweł Głuchowski
+Wydział Informatyki i Telekomunikacji, Politechnika Wrocławska
+zapisano
+18 V 2026
+Creative Commons
+BY-NC-ND 4.0
+Modelowanie i Analiza
+Systemów Informatycznych
+Modelowanie taktyczne
+– encja, obiekt wartości, agregat
+--- page 2 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 2
+spis treści
+(1)  Modelowanie taktyczne
+(2)  Encja
+(3)  Obiekt wartości
+(4)  Encja czy obiekt wartości ?
+(5)  Agregat
+(6)  Kanwa projektu agregatu
+--- page 3 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 3
+opracowane m. in. na podstawie
+● DDD dla architektów oprogramowania
+– V. Vernon; wyd. Helion, 2016
+● Domain-Driven Design. Zapanuj nad złożonym systemem informatycznym
+– E. Evans; wyd. Helion, 2015
+
+--- page 4 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 4
+Modelowanie taktyczne
+--- page 5 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 5
+Modelowanie taktyczne
+Modelowanie taktyczne
+● Szczegółowe modelowanie wnętrza i granic kontekstu ograniczonego.
+● Stosuje czystą architekturę np. architekturę portów i adapterów (architekturę sześciokątną).
+● Wykonywane za pomocą wzorców:
+– Encja – opisuje element (byt) dziedziny i ma stałą tożsamość (identyfikator):
+● nawet gdy zmienia się reprezentacja encji.
+– Obiekt wartości – opisuje element (aspekt) dziedziny ale nie ma stałej tożsamości:
+● atrybut encji,
+● parametr komunikatu (operacji, usługi).
+– Agregat – kompozycja obiektów wartości i encji:
+● Przez transakcje traktowana jest łącznie
+(zachowanie spójności asocjacji między elementami agregatu).
+● Ma korzeń (dostępną encję; pozostałe elementy agregatu są ukryte).
+● Ma granicę spójności transakcyjnej
+(spójności asocjacji jej elementów).
+– Fabryka – buduje określony typ agregatu:
+● Zachowując spójność asocjacji jego elementów.
+– Repozytorium – utrwala określony typ agregatu:
+● Potem pozwala go wyszukać i pobrać.
+
+--- page 6 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 6
+Modelowanie taktyczne
+Modelowanie taktyczne
+● Wykonywane za pomocą wzorców:
+– Usługa dziedziny – wykonuje biznesową operację:
+● związaną z encjami
+(przypadek użycia i reguły biznesowe)
+● ale nie operację na encji
+(wykonuje ją sama encja lub jej agregat).
+– Usługa aplikacji – wykonuje niebiznesową operację:
+● inicjacja przypadków użycia,
+● zarządzanie transakcjami utrwalania,
+● zarządzanie mechanizmami zabezpieczeń
+● zarządzanie mechanizmami obsługi zdarzeń dziedziny.
+– Zdarzenie dziedziny – komunikat o zmianie lub przetworzeniu
+elementów modelu dziedziny (wynik wykonania operacji agregatu):
+● tworzony przez agregat,
+● przekazywany przez usługę aplikacji do innego komponentu systemu
+(zwykle innego kontekstu ograniczonego).
+
+
+================================================================================
+FILE: MIASI-W Modelowanie taktyczne - fabryka, repozytorium, usługa, zdarzenie (1).pdf
+================================================================================
+--- page 1 ---
+dr inż. Paweł Głuchowski
+Wydział Informatyki i Telekomunikacji, Politechnika Wrocławska
+zapisano
+11 VI 2026
+Creative Commons
+BY-NC-ND 4.0
+Modelowanie i Analiza
+Systemów Informatycznych
+Modelowanie taktyczne
+– fabryka, repozytorium, usługa, zdarzenie
+--- page 2 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 2
+spis treści
+(1)  Modelowanie taktyczne
+(2)  Fabryka
+(3)  Repozytorium
+(4)  Usługa dziedziny
+(5)  Przypadek użycia w architekturze sześciokątnej
+(6)  Specyfikacja
+(7)  Zdarzenie dziedziny
+(8)  Publikowanie zdarzeń dziedziny
+(9)  Magazyn zdarzeń
+--- page 3 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 3
+opracowane m. in. na podstawie
+● DDD dla architektów oprogramowania
+– V. Vernon; wyd. Helion, 2016
+● Domain-Driven Design. Zapanuj nad złożonym systemem informatycznym
+– E. Evans; wyd. Helion, 2015
+● Nie bój się ubrudzić rąk, tworząc czystą architekturę. Projektowanie aplikacji wysokiej jakości na przykładach w Javie.
+Wydanie II
+– T. Hombergs; wyd. Helion, 2024
+
+--- page 4 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 4
+Modelowanie taktyczne
+--- page 5 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 5
+Modelowanie taktyczne
+Modelowanie taktyczne
+● Szczegółowe modelowanie wnętrza i granic kontekstu ograniczonego.
+● Stosuje czystą architekturę np. architekturę portów i adapterów (architekturę sześciokątną).
+● Wykonywane za pomocą wzorców:
+– Encja – opisuje element (byt) dziedziny i ma stałą tożsamość (identyfikator):
+● nawet gdy zmienia się reprezentacja encji.
+– Obiekt wartości – opisuje element (aspekt) dziedziny ale nie ma stałej tożsamości:
+● atrybut encji,
+● parametr komunikatu (operacji, usługi).
+– Agregat – kompozycja obiektów wartości i encji:
+● Przez transakcje traktowana jest łącznie
+(zachowanie spójności asocjacji między elementami agregatu).
+● Ma korzeń (dostępną encję; pozostałe elementy agregatu są ukryte).
+● Ma granicę spójności transakcyjnej
+(spójności asocjacji jej elementów).
+– Fabryka – buduje określony typ agregatu:
+● Zachowując spójność asocjacji jego elementów.
+– Repozytorium – utrwala określony typ agregatu:
+● Potem pozwala go wyszukać i pobrać.
+
+--- page 6 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 6
+Modelowanie taktyczne
+Modelowanie taktyczne
+● Wykonywane za pomocą wzorców:
+– Usługa dziedziny – wykonuje biznesową operację:
+● związaną z encjami
+(przypadek użycia i reguły biznesowe)
+● ale nie operację na encji
+(wykonuje ją sama encja lub jej agregat).
+– Usługa aplikacji – wykonuje niebiznesową operację:
+● inicjacja przypadków użycia,
+● zarządzanie transakcjami utrwalania,
+● zarządzanie mechanizmami zabezpieczeń
+● zarządzanie mechanizmami obsługi zdarzeń dziedziny.
+– Zdarzenie dziedziny – komunikat o zmianie lub przetworzeniu
+elementów modelu dziedziny (wynik wykonania operacji agregatu):
+● tworzony przez agregat,
+● przekazywany przez usługę aplikacji do innego komponentu systemu
+(zwykle innego kontekstu ograniczonego).
+
+
+================================================================================
+FILE: MIASI-W Modelowanie taktyczne - fabryka, repozytorium, usługa, zdarzenie (2).pdf
+================================================================================
+--- page 1 ---
+dr inż. Paweł Głuchowski
+Wydział Informatyki i Telekomunikacji, Politechnika Wrocławska
+zapisano
+11 VI 2026
+Creative Commons
+BY-NC-ND 4.0
+Modelowanie i Analiza
+Systemów Informatycznych
+Modelowanie taktyczne
+– fabryka, repozytorium, usługa, zdarzenie
+--- page 2 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 2
+spis treści
+(1)  Modelowanie taktyczne
+(2)  Fabryka
+(3)  Repozytorium
+(4)  Usługa dziedziny
+(5)  Przypadek użycia w architekturze sześciokątnej
+(6)  Specyfikacja
+(7)  Zdarzenie dziedziny
+(8)  Publikowanie zdarzeń dziedziny
+(9)  Magazyn zdarzeń
+--- page 3 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 3
+opracowane m. in. na podstawie
+● DDD dla architektów oprogramowania
+– V. Vernon; wyd. Helion, 2016
+● Domain-Driven Design. Zapanuj nad złożonym systemem informatycznym
+– E. Evans; wyd. Helion, 2015
+● Nie bój się ubrudzić rąk, tworząc czystą architekturę. Projektowanie aplikacji wysokiej jakości na przykładach w Javie.
+Wydanie II
+– T. Hombergs; wyd. Helion, 2024
+
+--- page 4 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 4
+Modelowanie taktyczne
+--- page 5 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 5
+Modelowanie taktyczne
+Modelowanie taktyczne
+● Szczegółowe modelowanie wnętrza i granic kontekstu ograniczonego.
+● Stosuje czystą architekturę np. architekturę portów i adapterów (architekturę sześciokątną).
+● Wykonywane za pomocą wzorców:
+– Encja – opisuje element (byt) dziedziny i ma stałą tożsamość (identyfikator):
+● nawet gdy zmienia się reprezentacja encji.
+– Obiekt wartości – opisuje element (aspekt) dziedziny ale nie ma stałej tożsamości:
+● atrybut encji,
+● parametr komunikatu (operacji, usługi).
+– Agregat – kompozycja obiektów wartości i encji:
+● Przez transakcje traktowana jest łącznie
+(zachowanie spójności asocjacji między elementami agregatu).
+● Ma korzeń (dostępną encję; pozostałe elementy agregatu są ukryte).
+● Ma granicę spójności transakcyjnej
+(spójności asocjacji jej elementów).
+– Fabryka – buduje określony typ agregatu:
+● Zachowując spójność asocjacji jego elementów.
+– Repozytorium – utrwala określony typ agregatu:
+● Potem pozwala go wyszukać i pobrać.
+
+--- page 6 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 6
+Modelowanie taktyczne
+Modelowanie taktyczne
+● Wykonywane za pomocą wzorców:
+– Usługa dziedziny – wykonuje biznesową operację:
+● związaną z encjami
+(przypadek użycia i reguły biznesowe)
+● ale nie operację na encji
+(wykonuje ją sama encja lub jej agregat).
+– Usługa aplikacji – wykonuje niebiznesową operację:
+● inicjacja przypadków użycia,
+● zarządzanie transakcjami utrwalania,
+● zarządzanie mechanizmami zabezpieczeń
+● zarządzanie mechanizmami obsługi zdarzeń dziedziny.
+– Zdarzenie dziedziny – komunikat o zmianie lub przetworzeniu
+elementów modelu dziedziny (wynik wykonania operacji agregatu):
+● tworzony przez agregat,
+● przekazywany przez usługę aplikacji do innego komponentu systemu
+(zwykle innego kontekstu ograniczonego).
+
+
+================================================================================
+FILE: MIASI-W Wsparcie modelowania diagramami UML.pdf
+================================================================================
+--- page 1 ---
+dr inż. Paweł Głuchowski
+Wydział Informatyki i Telekomunikacji, Politechnika Wrocławska
+zapisano
+8 V 2026
+Creative Commons
+BY-NC-ND 4.0
+Modelowanie i Analiza
+Systemów Informatycznych
+Wsparcie modelowania diagramami UML
+--- page 2 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 2
+spis treści
+(1)  Graficzne modelowanie oprogramowania
+(2)  Język UML
+(3)  Modelowanie przypadków użycia
+(4)  Modelowanie struktury – klasy
+(5)  Modelowanie struktury – obiekty
+(6)  Modelowanie struktury – pakiety
+(7)  Modelowanie struktury – komponenty
+(8)  Modelowanie struktury – wdrożenie
+(8)  Modelowanie zachowania – czynności
+(9)  Modelowanie zachowania – stany
+(10)  Modelowanie zachowania – komunikacje
+(11)  Modelowanie zachowania – sekwencje
+(12)  Modelowanie zachowania – przegląd 
+interakcji
+--- page 3 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 3
+opracowane m. in. na podstawie
+● Uniﬁed Modeling Language (UML)
+– OMG; www.omg.org/spec/UML, 2017
+
+--- page 4 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 4
+Graficzne modelowanie oprogramowania
+--- page 5 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 5
+Graficzne modelowanie oprogramowania
+Język graficznego modelowania
+● Wyraża strukturę i / lub zachowanie projektowanego systemu (oprogramowania).
+– przy pomocy diagramów;
+– w sposób formalny i ustandaryzowany;
+– obrazowo i intuicyjnie;
+– prawie niezależnie od używanego języka naturalnego i języka programowania.
+● Każdy element diagramu ma określone:
+– wygląd (np. kształt, kolor, rodzaj kreski);
+– tekstowy opis (np. nazwę);
+– relacje z innymi elementami (co, z czym i w jaki spobó się łączy);
+– inne ograniczenia;
+– składnię;
+– semantykę.
+● To, co dla człowieka jest diagramem (rysunkiem), dla komputera jest jego tekstowym zapisem (np. w formacie XML).
+--- page 6 ---
+dr inż. Paweł Głuchowski Modelowanie i Analiza Systemów Informatycznych 6
+Graficzne modelowanie oprogramowania
+Popularne graficzne języki modelowania oprogramowania
+● BPMN /Business Process Model and Notation/:
+– Modeluje procesy biznesowe, czyli zadania realizowane przez projektowany system.
+● Model C4 /C4 model/:
+– Modeluje strukturę oprogramowania.
+● UML /Unified Modeling Language/:
+– Modeluje strukturę i zachowanie oprogramowania.
+
+================================================================================
+FILE: Projekt_MIASI___bez_subskrypcji (6).pdf
+================================================================================
+--- page 1 ---
+Modelowanie i analiza systemów informatycznych -
+projekt
+Spis treści
+1 Modelowanie strategiczne 3
+1.1 Event Storming . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+1.2 Dziedziny i konteksty ograniczone . . . . . . . . . . . . . . . . . . . . . . . 4
+1.2.1 Dziedzina główna . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+1.2.2 Dziedziny pomocnicze . . . . . . . . . . . . . . . . . . . . . . . . . 5
+1.2.3 Dziedziny generyczne . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+1.2.4 Konteksty ograniczone . . . . . . . . . . . . . . . . . . . . . . . . . 5
+1.2.5 Diagram dziedziny i kontekstów ograniczonych . . . . . . . . . . . . 6
+1.3 Mapowanie kontekstów ograniczonych . . . . . . . . . . . . . . . . . . . . . 6
+1.3.1 Kontekst Uwierzytelnianie→Wszystkie pozostałe konteksty . . . . 7
+1.3.2 Kontekst Biblioteka Treści→Kontekst Rekomendacja Treści . . . . 8
+1.3.3 Kontekst Odtwarzanie Wideo→Kontekst Rekomendacja Treści . . 9
+1.3.4 Kontekst Biblioteka Treści→Kontekst Odtwarzanie Wideo . . . . 10
+1.4 Wizja dziedziny - wymagania funkcjonalne i ich analiza . . . . . . . . . . . 11
+1.4.1 Wymagania funkcjonalne . . . . . . . . . . . . . . . . . . . . . . . . 11
+1.5 Przypadki użycia systemu . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+1.5.1 PU1 Rejestrowanie nowego konta widza . . . . . . . . . . . . . . . . 12
+1.5.2 PU2 Logowanie do systemu . . . . . . . . . . . . . . . . . . . . . . 13
+1.5.3 PU3 Wylogowywanie z systemu . . . . . . . . . . . . . . . . . . . . 13
+1.5.4 PU4 Resetowanie hasła . . . . . . . . . . . . . . . . . . . . . . . . . 14
+1
+--- page 2 ---
+1.5.5 PU5 Przeglądanie dostępnych treści . . . . . . . . . . . . . . . . . . 14
+1.5.6 PU6 Wyszukiwanie treści po słowach kluczowych . . . . . . . . . . 15
+1.5.7 PU7 Filtrowanie dostępnych treści . . . . . . . . . . . . . . . . . . . 15
+1.5.8 PU8 Dodawanie nowej treści do biblioteki . . . . . . . . . . . . . . 16
+1.5.9 PU9 Modyfikowanie informacji o treści . . . . . . . . . . . . . . . . 16
+1.5.10 PU10 Usuwanie treści z biblioteki . . . . . . . . . . . . . . . . . . . 16
+1.5.11 PU11 Generowanie spersonalizowanych rekomendacji . . . . . . . . 17
+1.5.12 PU12 Ocenianie obejrzanych treści . . . . . . . . . . . . . . . . . . 17
+1.5.13 PU13 Dodawanie treści do „watchlisty” . . . . . . . . . . . . . . . . 18
+1.5.14 PU14 Odtwarzanie materiału wideo . . . . . . . . . . . . . . . . . . 18
+1.6 Język Wszechobecny (Ubiquitous Language) . . . . . . . . . . . . . . . . . 19
+1.6.1 Kontekst Uwierzytelnianie . . . . . . . . . . . . . . . . . . . . . . . 19
+1.6.2 Kontekst Biblioteka Treści . . . . . . . . . . . . . . . . . . . . . . . 20
+1.6.3 Kontekst Odtwarzanie Wideo . . . . . . . . . . . . . . . . . . . . . 20
+1.6.4 Kontekst Rekomendacja Treści (Dziedzina Główna) . . . . . . . . . 21
+2
+--- page 3 ---
+1 Modelowanie strategiczne
+1.1 Event Storming
+Technika ta pozwala na odkrycie procesów biznesowych oraz identyfikację zdarzeń domeny.
+Do wygenerowania diagramów użyto aplikacji webowej dostępnej pod adresemhttps:
+// dddtoolbox.com/ event-storming.
+Rysunek 1: Widz otwiera stronę biblioteki treści i otrzymuje listę rekomendacji. Źródło:
+opracowanie własne
+Na rysunku 1 przedstawiono diagram, w którym pokazano scenariusz widza odwiedza-
+jącego stronę biblioteki treści. System realizuje zadanie domeny głównej i tworzy listę
+rekomendowanych treści dla widza.
+Rysunek 2: Scenariusz oglądania treści przez widza. Źródło: opracowanie własne
+Na rysunku 2 przedstawiono diagram, w którym pokazano scenariusz widza, który ogląda
+treść z biblioteki treści. System na bieżąco zapisuje historię oglądania widza. Następnie
+3
+--- page 4 ---
+na jej podstawie aktualizowany jest profil preferencji użytkownika i generowana jest lista
+rekomendowanych treści.
+Rysunek 3: Widz ocenia treść - system na tej podstawie aktualizuje profil preferencji widza.
+Źródło: opracowanie własne
+Na rysunku 3 przedstawiono diagram, w którym pokazano scenariusz widza oceniającego
+treść z biblioteki treść. System odnotowuje to zdarzenie i na tej podstawie aktualizuje
+profil preferencji widza oraz generuje listę rekomendacji dla widza.
+Na rysunku 4 przedstawiono diagram, w którym pokazano scenariusz widza, dodającego
+treść do swojejwatchlisty. Na tej podstawie system aktualizuje profil preferencji widza, a
+następnie generuje listę rekomendacji dla widza.
+1.2 Dziedziny i konteksty ograniczone
+1.2.1 Dziedzina główna
+• Rekomendacja treści (Recommendation Engine)- część dziedziny biznesowej o
+największym znaczeniu dla biznesu. W przypadku platformy streamingowej przychód
+generowany jest od producentów filmów i seriali. Za udostępnianie ich materiałów na
+platformie pobierana jest opłata. Im więcej użytkowników platformy, tym większe
+zainteresowanie producentów. W związku z tym chcemy zapewnić jak najwięcej
+użytkowników na naszej platformie, poprzez spersonalizowane rekomendacje seriali i
+filmów.
+4
+--- page 5 ---
+Rysunek 4: Widz dodaje treść dowatchlisty- system na tej podstawie aktualizuje profil
+preferencji widza. Źródło: opracowanie własne
+1.2.2 Dziedziny pomocnicze
+• Zarządzanie biblioteką treści- dziedzina odpowiedzialna za przechowywanie
+oraz zarządzanie filmami i serialami dostępnymi na platformie. Obejmuje organizację
+metadanych treści, wyszukiwanie, filtrowanie oraz administrację katalogiem.
+• Odtwarzanie wideo- dziedzina odpowiedzialna za dostarczanie materiałów wideo
+użytkownikom platformy. Obsługuje autoryzację dostępu do treści, zapis postępu
+oglądania oraz wznawianie odtwarzania.
+1.2.3 Dziedziny generyczne
+• Uwierzytelnianie- dziedzina odpowiedzialna za identyfikację i uwierzytelnianie
+użytkowników systemu. Obsługuje procesy logowania, rejestracji, wylogowywania
+oraz resetowania hasła.
+1.2.4 Konteksty ograniczone
+• Kontekst Rekomendacja Treści- otacza dziedzinę główną Rekomendacja treści
+5
+--- page 6 ---
+• Kontekst Biblioteka Treści- otacza dziedzinę pomocniczą Zarządzanie biblioteką
+treści. Zarządza biblioteką dostępnych treści.
+• Kontekst Odtwarzanie Wideo- otacza dziedzinę pomocniczą Odtwarzanie wideo.
+Odpowiada za odtwarzanie treści oraz historię oglądania.
+• Kontekst Uwierzytelnianie- otacza dziedzinę generyczną Uwierzytelnianie. Ob-
+sługuje uwierzytelnianie wszystkich użytkowników systemu.
+1.2.5 Diagram dziedziny i kontekstów ograniczonych
+Rysunek 5: Graficzna reprezentacja modelu dziedziny, w tym poddziedzin, kontekstów
+ograniczonych oraz integracji kontekstów. Źródło: opracowanie własne
+1.3 Mapowanie kontekstów ograniczonych
+Mapowanie kontekstów ograniczonych opisuje sposób integracji poszczególnych kontekstów
+systemu oraz zależności pomiędzy nimi. Każdy kontekst ograniczony posiada własny model
+dziedziny oraz własny język wszechobecny, dlatego konieczne jest określenie sposobu
+komunikacji pomiędzy nimi.
+W systemie platformy streamingowej wyróżniono następujące relacje integracyjne pomiędzy
+kontekstami ograniczonymi.
+6
+--- page 7 ---
+1.3.1 Kontekst Uwierzytelnianie→Wszystkie pozostałe konteksty
+Rysunek 6: Mapowanie kontekstu Uwierzytelnianie jako globalnego dostawcy. Źródło:
+opracowanie własne
+Rodzaj mapowania: Usługa Otwartego Hosta (Open Host Service) / Opubliko-
+wany Język (Published Language)
+•Dostawca (U):Kontekst Uwierzytelnianie
+• Klient (D):Kontekst Biblioteka Treści, Kontekst Rekomendacja Treści, Kontekst
+Odtwarzanie Wideo
+WtymmapowaniuKontekstUwierzytelnianiapełnirolęuniwersalnegodostawcytożsamości
+dla całej platformy. Działa on jako Usługa Otwartego Hosta, co oznacza, że udostępnia
+ustandaryzowany i powszechnie zrozumiały zbiór informacji o użytkowniku (Opublikowany
+Język).
+Kiedy gość pomyślnie się zaloguje, kontekst uwierzytelniania przekazuje do reszty systemu
+autoryzowaną informację zawierającą podstawowe dane (np. identyfikator i rolę użytkow-
+nika). Pozostałe konteksty nie muszą wiedzieć, jak przebiegał proces logowania ani jak
+zbudowana jest baza kont – po prostu przyjmują ten zunifikowany "dokument tożsamości"i
+na jego podstawie realizują swoje procesy biznesowe.
+7
+--- page 8 ---
+1.3.2 Kontekst Biblioteka Treści→Kontekst Rekomendacja Treści
+Rysunek 7: Mapowanie kontekstów:Biblioteka TreściorazRekomendacja Treści. Źródło:
+opracowanie własne
+Rodzaj mapowania: Konformista (Conformist)
+•Dostawca (U):Kontekst Biblioteka Treści
+•Klient (D):Kontekst Rekomendacja Treści
+Relacja Konformisty polega na tym, że klient całkowicie akceptuje model domeny narzucony
+przez dostawcę i nie tworzy własnego języka do opisywania tych samych zjawisk.
+W tym przypadku Biblioteka Treści jest głównym źródłem prawdy o dostępnych filmach
+i serialach. Kontekst Rekomendacji, aby móc cokolwiek polecać, musi znać metadane
+tych treści. Zamiast tworzyć własną, oddzielną reprezentację "filmu", moduł rekomendacji
+po prostu przejmuje strukturę informacji dostarczaną przez Bibliotekę (np. informacje o
+gatunkach, słowach kluczowych czy dacie premiery) dokładnie w takiej formie, w jakiej
+wystawia je dostawca.
+8
