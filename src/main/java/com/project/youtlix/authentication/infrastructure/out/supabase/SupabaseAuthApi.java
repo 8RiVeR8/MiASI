@@ -117,15 +117,27 @@ final class SupabaseAuthRestClient implements SupabaseAuthApi {
 
     private AuthResponse postAuthResponse(String uri, Credentials credentials) {
         requireConfigured();
-        AuthResponse response = restClient.post()
-                .uri(uri)
-                .body(credentials)
-                .retrieve()
-                .body(AuthResponse.class);
-        if (response == null) {
-            throw new IllegalStateException("Supabase Auth returned an empty session");
+        try {
+            AuthResponse response = restClient.post()
+                    .uri(uri)
+                    .body(credentials)
+                    .retrieve()
+                    .body(AuthResponse.class);
+            if (response == null) {
+                throw new IllegalStateException("Supabase Auth returned an empty session");
+            }
+            return response;
+        } catch (RestClientResponseException exception) {
+            if (isInvalidCredentials(exception)) {
+                throw new InvalidCredentialsException();
+            }
+            throw exception;
         }
-        return response;
+    }
+
+    private static boolean isInvalidCredentials(RestClientResponseException exception) {
+        return exception.getStatusCode().value() == 400
+                && exception.getResponseBodyAsString().contains("invalid_credentials");
     }
 
     private void requireConfigured() {
