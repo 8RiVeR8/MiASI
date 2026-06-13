@@ -8,6 +8,7 @@ import com.project.youtlix.videoplayback.application.port.out.VideoFile;
 import com.project.youtlix.videoplayback.application.port.out.VideoStreamPort;
 import com.project.youtlix.videoplayback.domain.model.ContentId;
 import com.project.youtlix.videoplayback.domain.model.Playback;
+import com.project.youtlix.videoplayback.application.port.in.StartedPlayback;
 import com.project.youtlix.videoplayback.domain.model.PlaybackId;
 import com.project.youtlix.videoplayback.domain.model.PlaybackProgress;
 import com.project.youtlix.videoplayback.domain.model.PlaybackStatus;
@@ -42,12 +43,13 @@ class PlaybackUseCaseTest {
         ContentId contentId = new ContentId(UUID.randomUUID());
 
         service.play(viewerId, contentId);
-        PlaybackId playbackId = repository.onlyPlayback().id();
-        service.saveProgress(playbackId, new PlaybackProgress(120, Instant.now()));
-        service.play(viewerId, contentId);
+        service.saveProgress(viewerId, contentId, new PlaybackProgress(120, Instant.now()));
+        StartedPlayback resumed = service.play(viewerId, contentId);
 
         assertThat(repository.onlyPlayback().progress().positionSeconds()).isEqualTo(120);
         assertThat(repository.onlyPlayback().status()).isEqualTo(PlaybackStatus.PLAYING);
+        assertThat(resumed.resumed()).isTrue();
+        assertThat(resumed.resumeFromSeconds()).isEqualTo(120);
     }
 
     static class InMemoryPlaybackRepository implements PlaybackRepository {

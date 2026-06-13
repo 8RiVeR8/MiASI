@@ -5,7 +5,6 @@ import com.project.youtlix.common.infrastructure.in.web.OpenApiConfig;
 import com.project.youtlix.videoplayback.application.port.in.PlaybackUseCase;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import com.project.youtlix.videoplayback.domain.model.ContentId;
-import com.project.youtlix.videoplayback.domain.model.PlaybackId;
 import com.project.youtlix.videoplayback.domain.model.PlaybackProgress;
 import com.project.youtlix.videoplayback.domain.model.ViewerId;
 import org.springframework.http.HttpStatus;
@@ -39,7 +38,8 @@ public class PlaybackController {
     /** Handles POST /play/{contentId}. */
     @PostMapping("/play/{contentId}")
     public PlaybackResponse play(@RequestHeader("Authorization") String authorization, @PathVariable UUID contentId) {
-        return PlaybackResponse.from(useCase.play(currentViewer(authorization), new ContentId(contentId)));
+        ViewerId viewerId = currentViewer(authorization);
+        return PlaybackResponse.from(useCase.play(viewerId, new ContentId(contentId)));
     }
 
     /** Handles PUT /play/{contentId}/progress. */
@@ -49,9 +49,10 @@ public class PlaybackController {
             @PathVariable UUID contentId,
             @RequestBody PlaybackRequest request
     ) {
-        currentViewer(authorization);
+        ViewerId viewerId = currentViewer(authorization);
         useCase.saveProgress(
-                new PlaybackId(request.playbackId()),
+                viewerId,
+                new ContentId(contentId),
                 new PlaybackProgress(request.positionSeconds(), Instant.now())
         );
     }
@@ -60,11 +61,9 @@ public class PlaybackController {
     @PostMapping("/play/{contentId}/complete")
     public void finish(
             @RequestHeader("Authorization") String authorization,
-            @PathVariable UUID contentId,
-            @RequestBody PlaybackRequest request
+            @PathVariable UUID contentId
     ) {
-        currentViewer(authorization);
-        useCase.finish(new PlaybackId(request.playbackId()));
+        useCase.finish(currentViewer(authorization), new ContentId(contentId));
     }
 
     private ViewerId currentViewer(String authorization) {
