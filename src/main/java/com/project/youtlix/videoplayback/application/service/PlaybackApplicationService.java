@@ -13,6 +13,7 @@ import com.project.youtlix.videoplayback.domain.model.PlaybackId;
 import com.project.youtlix.videoplayback.domain.model.PlaybackProgress;
 import com.project.youtlix.videoplayback.domain.model.PlaybackStatus;
 import com.project.youtlix.videoplayback.domain.model.ViewerId;
+import com.project.youtlix.videoplayback.application.port.in.StartedPlayback;
 import com.project.youtlix.videoplayback.domain.model.VideoStream;
 import com.project.youtlix.videoplayback.domain.model.WatchActivity;
 import com.project.youtlix.videoplayback.domain.service.PlaybackService;
@@ -62,32 +63,34 @@ public class PlaybackApplicationService implements PlaybackUseCase, WatchActivit
     }
 
     @Override
-    public VideoStream play(ViewerId viewerId, ContentId contentId) {
+    public StartedPlayback play(ViewerId viewerId, ContentId contentId) {
         Playback playback = playbackRepository.ofViewerAndContent(viewerId, contentId)
                 .orElseGet(() -> new Playback(PlaybackId.newId(), viewerId, contentId));
         com.project.youtlix.contentlibrary.domain.model.VideoFile catalogVideoFile =
                 contentCatalogApi.videoFileOf(new com.project.youtlix.contentlibrary.domain.model.ContentId(contentId.value()));
 
+        boolean resumed = playback.isResumable();
+        int resumeFromSeconds = resumed ? playback.progress().positionSeconds() : 0;
         playbackService.play(playback);
         VideoStream stream = videoStreamPort.open(new VideoFile(catalogVideoFile.uri(), catalogVideoFile.languages()));
         playbackRepository.save(playback);
         eventPublisher.publishAll(playback.occurredEvents());
-        return stream;
+        return new StartedPlayback(stream, playback.id(), resumeFromSeconds, resumed);
     }
 
     @Override
-    public void saveProgress(PlaybackId playbackId, PlaybackProgress progress) {
-        Playback playback = playbackRepository.ofId(playbackId)
-                .orElseThrow(() -> new IllegalArgumentException("playback not found: " + playbackId.value()));
+    public void saveProgress(ViewerId viewerId, ContentId contentId, PlaybackProgress progress) {
+        Playback playback = playbackRepository.ofViewerAndContent(viewerId, contentId)
+                .orElseThrow(() -> new IllegalArgumentException("playback not found for content: " + contentId.value()));
         playbackService.saveProgress(playback, progress);
         playbackRepository.save(playback);
         eventPublisher.publishAll(playback.occurredEvents());
     }
 
     @Override
-    public void finish(PlaybackId playbackId) {
-        Playback playback = playbackRepository.ofId(playbackId)
-                .orElseThrow(() -> new IllegalArgumentException("playback not found: " + playbackId.value()));
+    public void finish(ViewerId viewerId, ContentId contentId) {
+        Playback playback = playbackRepository.ofViewerAndContent(viewerId, contentId)
+                .orElseThrow(() -> new IllegalArgumentException("playback not found for content: " + contentId.value()));
         playbackService.finish(playback);
         playbackRepository.save(playback);
         eventPublisher.publishAll(playback.occurredEvents());
