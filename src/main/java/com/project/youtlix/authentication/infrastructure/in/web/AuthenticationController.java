@@ -4,6 +4,7 @@ import com.project.youtlix.authentication.application.port.out.IdentityProvider;
 import com.project.youtlix.authentication.domain.model.UserIdentity;
 import com.project.youtlix.authentication.infrastructure.out.supabase.SupabaseAuthApi;
 import com.project.youtlix.authentication.infrastructure.out.supabase.SupabaseSession;
+import com.project.youtlix.authentication.infrastructure.out.supabase.InvalidCredentialsException;
 import com.project.youtlix.authentication.infrastructure.out.supabase.PendingEmailConfirmationException;
 import com.project.youtlix.common.infrastructure.in.web.OpenApiConfig;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -74,6 +75,11 @@ public class AuthenticationController {
     @ExceptionHandler(PendingEmailConfirmationException.class)
     public ResponseEntity<Map<String, String>> handlePendingEmailConfirmation(PendingEmailConfirmationException exception) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", exception.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException exception) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", exception.getMessage()));
     }
 
     private String bearerToken(String authorization) {
