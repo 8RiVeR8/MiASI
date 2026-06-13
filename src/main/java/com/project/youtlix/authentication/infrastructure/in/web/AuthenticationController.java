@@ -4,12 +4,19 @@ import com.project.youtlix.authentication.application.port.out.IdentityProvider;
 import com.project.youtlix.authentication.domain.model.UserIdentity;
 import com.project.youtlix.authentication.infrastructure.out.supabase.SupabaseAuthApi;
 import com.project.youtlix.authentication.infrastructure.out.supabase.SupabaseSession;
+import com.project.youtlix.authentication.infrastructure.out.supabase.PendingEmailConfirmationException;
+import com.project.youtlix.common.infrastructure.in.web.OpenApiConfig;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 import java.util.UUID;
 
@@ -47,6 +54,7 @@ public class AuthenticationController {
 
     /** Handles PU3 logout through Supabase Auth. */
     @PostMapping("/logout")
+    @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
     public void logout(@RequestHeader("Authorization") String authorization) {
         supabaseAuthApi.signOut(bearerToken(authorization));
     }
@@ -61,6 +69,11 @@ public class AuthenticationController {
     @PostMapping("/reset-password")
     public void resetPassword(@RequestBody ResetPasswordRequest request) {
         supabaseAuthApi.updateUser(request.token(), request.newPassword());
+    }
+
+    @ExceptionHandler(PendingEmailConfirmationException.class)
+    public ResponseEntity<Map<String, String>> handlePendingEmailConfirmation(PendingEmailConfirmationException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", exception.getMessage()));
     }
 
     private String bearerToken(String authorization) {
