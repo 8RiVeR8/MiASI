@@ -1,7 +1,9 @@
 package com.project.youtlix.videoplayback.infrastructure.in.web;
 
 import com.project.youtlix.authentication.application.port.out.IdentityProvider;
+import com.project.youtlix.common.infrastructure.in.web.OpenApiConfig;
 import com.project.youtlix.videoplayback.application.port.in.PlaybackUseCase;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import com.project.youtlix.videoplayback.domain.model.ContentId;
 import com.project.youtlix.videoplayback.domain.model.PlaybackId;
 import com.project.youtlix.videoplayback.domain.model.PlaybackProgress;
@@ -22,6 +24,7 @@ import java.util.UUID;
  * Driving web adapter for PU14 playback operations.
  */
 @RestController
+@SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
 public class PlaybackController {
 
     private final PlaybackUseCase useCase;
