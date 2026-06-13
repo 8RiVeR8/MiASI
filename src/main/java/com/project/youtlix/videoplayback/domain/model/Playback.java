@@ -18,6 +18,7 @@ public class Playback {
     private final PlaybackId id;
     private final ViewerId viewerId;
     private final ContentId contentId;
+    private final PlayableType playableType;
     private PlaybackProgress progress;
     private PlaybackStatus status;
     private final List<DomainEvent> occurredEvents = new ArrayList<>();
@@ -25,8 +26,8 @@ public class Playback {
     /**
      * Creates a playback aggregate.
      */
-    public Playback(PlaybackId id, ViewerId viewerId, ContentId contentId) {
-        this(id, viewerId, contentId, PlaybackProgress.start(), PlaybackStatus.PAUSED);
+    public Playback(PlaybackId id, ViewerId viewerId, ContentId contentId, PlayableType playableType) {
+        this(id, viewerId, contentId, playableType, PlaybackProgress.start(), PlaybackStatus.PAUSED);
     }
 
     /**
@@ -36,12 +37,14 @@ public class Playback {
             PlaybackId id,
             ViewerId viewerId,
             ContentId contentId,
+            PlayableType playableType,
             PlaybackProgress progress,
             PlaybackStatus status
     ) {
         this.id = Objects.requireNonNull(id, "id must not be null");
         this.viewerId = Objects.requireNonNull(viewerId, "viewerId must not be null");
         this.contentId = Objects.requireNonNull(contentId, "contentId must not be null");
+        this.playableType = Objects.requireNonNull(playableType, "playableType must not be null");
         this.progress = Objects.requireNonNull(progress, "progress must not be null");
         this.status = Objects.requireNonNull(status, "status must not be null");
     }
@@ -100,6 +103,10 @@ public class Playback {
 
     public ContentId contentId() {
         return contentId;
+    }
+
+    public PlayableType playableType() {
+        return playableType;
     }
 
     public PlaybackProgress progress() {

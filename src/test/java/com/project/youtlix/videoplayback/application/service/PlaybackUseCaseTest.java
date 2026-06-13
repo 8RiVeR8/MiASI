@@ -3,6 +3,7 @@ package com.project.youtlix.videoplayback.application.service;
 import com.project.youtlix.common.application.port.out.DomainEventPublisher;
 import com.project.youtlix.contentlibrary.application.port.in.ContentCatalogApi;
 import com.project.youtlix.contentlibrary.application.port.in.ContentMetadata;
+import com.project.youtlix.contentlibrary.application.port.in.ResolvedPlayable;
 import com.project.youtlix.videoplayback.application.port.out.PlaybackRepository;
 import com.project.youtlix.videoplayback.application.port.out.VideoFile;
 import com.project.youtlix.videoplayback.application.port.out.VideoStreamPort;
@@ -100,6 +101,15 @@ class PlaybackUseCaseTest {
                 com.project.youtlix.contentlibrary.domain.model.ContentId id
         ) {
             return new com.project.youtlix.contentlibrary.domain.model.VideoFile("cdn://movie", List.of("pl"));
+        }
+
+        @Override
+        public ResolvedPlayable resolvePlayable(UUID id) {
+            return new ResolvedPlayable(
+                    id,
+                    ResolvedPlayable.PlayableKind.MOVIE,
+                    new com.project.youtlix.contentlibrary.domain.model.VideoFile("cdn://movie", List.of("pl"))
+            );
         }
     }
 
