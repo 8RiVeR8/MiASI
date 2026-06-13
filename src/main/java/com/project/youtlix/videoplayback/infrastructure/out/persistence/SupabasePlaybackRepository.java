@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +48,7 @@ public class SupabasePlaybackRepository implements PlaybackRepository {
                 playback.viewerId().value(),
                 playback.contentId().value(),
                 playback.progress().positionSeconds(),
-                playback.progress().updatedAt(),
+                Timestamp.from(playback.progress().updatedAt()),
                 playback.status().name()
         );
     }
