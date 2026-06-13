@@ -16,7 +16,8 @@ class PlaybackTest {
         Playback playback = new Playback(
                 PlaybackId.newId(),
                 new ViewerId(UUID.randomUUID()),
-                new ContentId(UUID.randomUUID())
+                new ContentId(UUID.randomUUID()),
+                PlayableType.MOVIE
         );
 
         playback.start(PlaybackProgress.start());

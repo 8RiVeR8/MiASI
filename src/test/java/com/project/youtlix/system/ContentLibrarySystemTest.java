@@ -5,6 +5,7 @@ import com.project.youtlix.authentication.domain.model.Role;
 import com.project.youtlix.authentication.domain.model.UserIdentity;
 import com.project.youtlix.authentication.domain.model.ViewerId;
 import com.project.youtlix.common.application.port.out.DomainEventPublisher;
+import com.project.youtlix.contentlibrary.application.port.in.ResolvedPlayable;
 import com.project.youtlix.contentlibrary.application.port.out.ContentRepository;
 import com.project.youtlix.contentlibrary.application.service.ContentLibraryApplicationService;
 import com.project.youtlix.contentlibrary.domain.model.Content;
@@ -13,6 +14,7 @@ import com.project.youtlix.contentlibrary.domain.model.Genre;
 import com.project.youtlix.contentlibrary.domain.model.Movie;
 import com.project.youtlix.contentlibrary.domain.model.Page;
 import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
+import com.project.youtlix.contentlibrary.domain.model.Series;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentController;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentRequest;
@@ -102,6 +104,19 @@ class ContentLibrarySystemTest {
                     .filter(Movie.class::isInstance)
                     .map(Movie.class::cast)
                     .map(Movie::videoFile);
+        }
+
+        @Override
+        public Optional<ResolvedPlayable> resolvePlayable(UUID id) {
+            return videoFileOf(new ContentId(id))
+                    .map(videoFile -> new ResolvedPlayable(id, ResolvedPlayable.PlayableKind.MOVIE, videoFile));
+        }
+
+        @Override
+        public boolean isSeries(ContentId id) {
+            return Optional.ofNullable(contents.get(id))
+                    .map(Series.class::isInstance)
+                    .orElse(false);
         }
 
         @Override

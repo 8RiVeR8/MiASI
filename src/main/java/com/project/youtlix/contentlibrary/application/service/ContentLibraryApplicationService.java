@@ -4,6 +4,9 @@ import com.project.youtlix.common.application.port.out.DomainEventPublisher;
 import com.project.youtlix.contentlibrary.application.port.in.ContentCatalogApi;
 import com.project.youtlix.contentlibrary.application.port.in.ContentLibraryUseCase;
 import com.project.youtlix.contentlibrary.application.port.in.ContentMetadata;
+import com.project.youtlix.contentlibrary.application.port.in.PlayableNotFoundException;
+import com.project.youtlix.contentlibrary.application.port.in.ResolvedPlayable;
+import com.project.youtlix.contentlibrary.application.port.in.SeriesNotPlayableException;
 import com.project.youtlix.contentlibrary.application.port.out.ContentRepository;
 import com.project.youtlix.contentlibrary.domain.model.Content;
 import com.project.youtlix.contentlibrary.domain.model.ContentId;
@@ -121,5 +124,16 @@ public class ContentLibraryApplicationService implements ContentLibraryUseCase, 
     public VideoFile videoFileOf(ContentId id) {
         return contentRepository.videoFileOf(id)
                 .orElseThrow(() -> new IllegalArgumentException("video file not found for content: " + id.value()));
+    }
+
+    @Override
+    public ResolvedPlayable resolvePlayable(java.util.UUID id) {
+        return contentRepository.resolvePlayable(id)
+                .orElseThrow(() -> {
+                    if (contentRepository.isSeries(new ContentId(id))) {
+                        throw new SeriesNotPlayableException(id);
+                    }
+                    throw new PlayableNotFoundException(id);
+                });
     }
 }
