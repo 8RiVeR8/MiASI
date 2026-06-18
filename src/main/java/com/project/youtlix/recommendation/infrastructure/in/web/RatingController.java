@@ -1,7 +1,9 @@
 package com.project.youtlix.recommendation.infrastructure.in.web;
 
 import com.project.youtlix.authentication.application.port.out.IdentityProvider;
+import com.project.youtlix.common.infrastructure.in.web.OpenApiConfig;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import com.project.youtlix.recommendation.domain.model.ContentId;
 import com.project.youtlix.recommendation.domain.model.StarRating;
 import com.project.youtlix.recommendation.domain.model.ViewerId;
@@ -19,6 +21,7 @@ import java.util.UUID;
  * Driving web adapter for PU12 ratings.
  */
 @RestController
+@SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
 public class RatingController {
 
     private final RecommendationUseCase useCase;

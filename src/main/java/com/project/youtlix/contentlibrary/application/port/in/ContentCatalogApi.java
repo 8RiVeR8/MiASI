@@ -18,4 +18,7 @@ public interface ContentCatalogApi {
 
     /** Returns technical video file data for playback. */
     VideoFile videoFileOf(ContentId id);
+
+    /** Resolves a movie or episode id for playback. */
+    ResolvedPlayable resolvePlayable(java.util.UUID id);
 }

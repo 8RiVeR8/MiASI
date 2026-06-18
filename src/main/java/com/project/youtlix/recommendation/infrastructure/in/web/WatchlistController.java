@@ -1,7 +1,9 @@
 package com.project.youtlix.recommendation.infrastructure.in.web;
 
 import com.project.youtlix.authentication.application.port.out.IdentityProvider;
+import com.project.youtlix.common.infrastructure.in.web.OpenApiConfig;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import com.project.youtlix.recommendation.domain.model.ContentId;
 import com.project.youtlix.recommendation.domain.model.ViewerId;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/watchlist")
+@SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
 public class WatchlistController {
 
     private final RecommendationUseCase useCase;

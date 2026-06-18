@@ -2,6 +2,8 @@ package com.project.youtlix.videoplayback.application.service;
 
 import com.project.youtlix.common.application.port.out.DomainEventPublisher;
 import com.project.youtlix.contentlibrary.application.port.in.ContentCatalogApi;
+import com.project.youtlix.contentlibrary.application.port.in.ResolvedPlayable;
+import com.project.youtlix.videoplayback.application.PlaybackNotFoundException;
 import com.project.youtlix.videoplayback.application.port.in.PlaybackUseCase;
 import com.project.youtlix.videoplayback.application.port.in.WatchActivityApi;
 import com.project.youtlix.videoplayback.application.port.out.PlaybackRepository;
@@ -12,7 +14,9 @@ import com.project.youtlix.videoplayback.domain.model.Playback;
 import com.project.youtlix.videoplayback.domain.model.PlaybackId;
 import com.project.youtlix.videoplayback.domain.model.PlaybackProgress;
 import com.project.youtlix.videoplayback.domain.model.PlaybackStatus;
+import com.project.youtlix.videoplayback.domain.model.PlayableType;
 import com.project.youtlix.videoplayback.domain.model.ViewerId;
+import com.project.youtlix.videoplayback.application.port.in.StartedPlayback;
 import com.project.youtlix.videoplayback.domain.model.VideoStream;
 import com.project.youtlix.videoplayback.domain.model.WatchActivity;
 import com.project.youtlix.videoplayback.domain.service.PlaybackService;
@@ -62,32 +66,39 @@ public class PlaybackApplicationService implements PlaybackUseCase, WatchActivit
     }
 
     @Override
-    public VideoStream play(ViewerId viewerId, ContentId contentId) {
+    public StartedPlayback play(ViewerId viewerId, ContentId contentId) {
+        ResolvedPlayable playable = contentCatalogApi.resolvePlayable(contentId.value());
+        PlayableType playableType = toPlayableType(playable.kind());
         Playback playback = playbackRepository.ofViewerAndContent(viewerId, contentId)
-                .orElseGet(() -> new Playback(PlaybackId.newId(), viewerId, contentId));
-        com.project.youtlix.contentlibrary.domain.model.VideoFile catalogVideoFile =
-                contentCatalogApi.videoFileOf(new com.project.youtlix.contentlibrary.domain.model.ContentId(contentId.value()));
+                .orElseGet(() -> new Playback(PlaybackId.newId(), viewerId, contentId, playableType));
 
+        boolean resumed = playback.isResumable();
+        int resumeFromSeconds = resumed ? playback.progress().positionSeconds() : 0;
         playbackService.play(playback);
-        VideoStream stream = videoStreamPort.open(new VideoFile(catalogVideoFile.uri(), catalogVideoFile.languages()));
+        VideoStream stream = videoStreamPort.open(new VideoFile(
+                playable.videoFile().uri(),
+                playable.videoFile().languages()
+        ));
         playbackRepository.save(playback);
         eventPublisher.publishAll(playback.occurredEvents());
-        return stream;
+        return new StartedPlayback(stream, playback.id(), resumeFromSeconds, resumed);
     }
 
     @Override
-    public void saveProgress(PlaybackId playbackId, PlaybackProgress progress) {
-        Playback playback = playbackRepository.ofId(playbackId)
-                .orElseThrow(() -> new IllegalArgumentException("playback not found: " + playbackId.value()));
+    public void saveProgress(ViewerId viewerId, ContentId contentId, PlaybackProgress progress) {
+        contentCatalogApi.resolvePlayable(contentId.value());
+        Playback playback = playbackRepository.ofViewerAndContent(viewerId, contentId)
+                .orElseThrow(() -> new PlaybackNotFoundException(contentId.value()));
         playbackService.saveProgress(playback, progress);
         playbackRepository.save(playback);
         eventPublisher.publishAll(playback.occurredEvents());
     }
 
     @Override
-    public void finish(PlaybackId playbackId) {
-        Playback playback = playbackRepository.ofId(playbackId)
-                .orElseThrow(() -> new IllegalArgumentException("playback not found: " + playbackId.value()));
+    public void finish(ViewerId viewerId, ContentId contentId) {
+        contentCatalogApi.resolvePlayable(contentId.value());
+        Playback playback = playbackRepository.ofViewerAndContent(viewerId, contentId)
+                .orElseThrow(() -> new PlaybackNotFoundException(contentId.value()));
         playbackService.finish(playback);
         playbackRepository.save(playback);
         eventPublisher.publishAll(playback.occurredEvents());
@@ -103,5 +114,9 @@ public class PlaybackApplicationService implements PlaybackUseCase, WatchActivit
                         playback.status() == PlaybackStatus.COMPLETED
                 ))
                 .toList();
+    }
+
+    private static PlayableType toPlayableType(ResolvedPlayable.PlayableKind kind) {
+        return kind == ResolvedPlayable.PlayableKind.EPISODE ? PlayableType.EPISODE : PlayableType.MOVIE;
     }
 }

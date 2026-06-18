@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
+import java.time.Instant;
+
 /**
  * Contract of the external Supabase Auth API.
  */
@@ -55,12 +57,12 @@ final class SupabaseAuthRestClient implements SupabaseAuthApi {
 
     @Override
     public SupabaseSession signUp(String email, String password) {
-        return postSession("/auth/v1/signup", new Credentials(email, password)).toSession();
+        return postAuthResponse("/auth/v1/signup", new Credentials(email, password)).toSession(true);
     }
 
     @Override
     public SupabaseSession signInWithPassword(String email, String password) {
-        return postSession("/auth/v1/token?grant_type=password", new Credentials(email, password)).toSession();
+        return postAuthResponse("/auth/v1/token?grant_type=password", new Credentials(email, password)).toSession(false);
     }
 
     @Override
@@ -113,17 +115,29 @@ final class SupabaseAuthRestClient implements SupabaseAuthApi {
         }
     }
 
-    private SessionResponse postSession(String uri, Credentials credentials) {
+    private AuthResponse postAuthResponse(String uri, Credentials credentials) {
         requireConfigured();
-        SessionResponse response = restClient.post()
-                .uri(uri)
-                .body(credentials)
-                .retrieve()
-                .body(SessionResponse.class);
-        if (response == null) {
-            throw new IllegalStateException("Supabase Auth returned an empty session");
+        try {
+            AuthResponse response = restClient.post()
+                    .uri(uri)
+                    .body(credentials)
+                    .retrieve()
+                    .body(AuthResponse.class);
+            if (response == null) {
+                throw new IllegalStateException("Supabase Auth returned an empty session");
+            }
+            return response;
+        } catch (RestClientResponseException exception) {
+            if (isInvalidCredentials(exception)) {
+                throw new InvalidCredentialsException();
+            }
+            throw exception;
         }
-        return response;
+    }
+
+    private static boolean isInvalidCredentials(RestClientResponseException exception) {
+        return exception.getStatusCode().value() == 400
+                && exception.getResponseBodyAsString().contains("invalid_credentials");
     }
 
     private void requireConfigured() {
@@ -141,13 +155,66 @@ final class SupabaseAuthRestClient implements SupabaseAuthApi {
     private record PasswordUpdate(String password) {
     }
 
-    private record SessionResponse(
+    private record AuthResponse(
             @JsonProperty("access_token") String accessToken,
             @JsonProperty("refresh_token") String refreshToken,
-            @JsonProperty("expires_at") long expiresAt
+            @JsonProperty("expires_at") Long expiresAt,
+            @JsonProperty("expires_in") Long expiresIn,
+            @JsonProperty("session") SessionPayload session
     ) {
-        private SupabaseSession toSession() {
-            return new SupabaseSession(accessToken, refreshToken, expiresAt);
+        private SupabaseSession toSession(boolean allowPendingConfirmation) {
+            String token = firstNonBlank(
+                    session != null ? session.accessToken() : null,
+                    accessToken
+            );
+            String refresh = firstNonBlank(
+                    session != null ? session.refreshToken() : null,
+                    refreshToken
+            );
+            Long expiry = firstNonNull(
+                    session != null ? session.expiresAt() : null,
+                    expiresAt
+            );
+            Long expiryInSeconds = firstNonNull(
+                    session != null ? session.expiresIn() : null,
+                    expiresIn
+            );
+
+            if (token == null || token.isBlank()) {
+                if (allowPendingConfirmation) {
+                    throw new PendingEmailConfirmationException();
+                }
+                throw new IllegalStateException("Supabase Auth returned an empty session");
+            }
+            if (expiry == null && expiryInSeconds != null) {
+                expiry = Instant.now().getEpochSecond() + expiryInSeconds;
+            }
+            if (expiry == null) {
+                throw new IllegalStateException("Supabase Auth returned a session without expiry");
+            }
+            return new SupabaseSession(token, refresh != null ? refresh : "", expiry);
         }
+    }
+
+    private record SessionPayload(
+            @JsonProperty("access_token") String accessToken,
+            @JsonProperty("refresh_token") String refreshToken,
+            @JsonProperty("expires_at") Long expiresAt,
+            @JsonProperty("expires_in") Long expiresIn
+    ) {
+    }
+
+    private static String firstNonBlank(String first, String second) {
+        if (first != null && !first.isBlank()) {
+            return first;
+        }
+        if (second != null && !second.isBlank()) {
+            return second;
+        }
+        return null;
+    }
+
+    private static Long firstNonNull(Long first, Long second) {
+        return first != null ? first : second;
     }
 }

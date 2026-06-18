@@ -6,12 +6,14 @@ import com.project.youtlix.videoplayback.domain.model.Playback;
 import com.project.youtlix.videoplayback.domain.model.PlaybackId;
 import com.project.youtlix.videoplayback.domain.model.PlaybackProgress;
 import com.project.youtlix.videoplayback.domain.model.PlaybackStatus;
+import com.project.youtlix.videoplayback.domain.model.PlayableType;
 import com.project.youtlix.videoplayback.domain.model.ViewerId;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -37,7 +39,7 @@ public class SupabasePlaybackRepository implements PlaybackRepository {
                     id, viewer_id, playable_id, playable_type,
                     position_seconds, progress_updated_at, status
                 )
-                values (?, ?, ?, 'MOVIE', ?, ?, ?::playback.playback_status)
+                values (?, ?, ?, ?::varchar, ?, ?, ?::playback.playback_status)
                 on conflict (viewer_id, playable_type, playable_id) do update set
                     position_seconds = excluded.position_seconds,
                     progress_updated_at = excluded.progress_updated_at,
@@ -46,8 +48,9 @@ public class SupabasePlaybackRepository implements PlaybackRepository {
                 playback.id().value(),
                 playback.viewerId().value(),
                 playback.contentId().value(),
+                playback.playableType().name(),
                 playback.progress().positionSeconds(),
-                playback.progress().updatedAt(),
+                Timestamp.from(playback.progress().updatedAt()),
                 playback.status().name()
         );
     }
@@ -85,6 +88,7 @@ public class SupabasePlaybackRepository implements PlaybackRepository {
                 new PlaybackId(row.getObject("id", UUID.class)),
                 new ViewerId(row.getObject("viewer_id", UUID.class)),
                 new ContentId(row.getObject("playable_id", UUID.class)),
+                PlayableType.valueOf(row.getString("playable_type")),
                 new PlaybackProgress(row.getInt("position_seconds"), progressUpdatedAt(row)),
                 PlaybackStatus.valueOf(row.getString("status"))
         );

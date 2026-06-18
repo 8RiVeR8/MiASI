@@ -13,6 +13,8 @@ import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
 import com.project.youtlix.recommendation.domain.model.RecommendedItem;
+import com.project.youtlix.common.infrastructure.in.web.OpenApiConfig;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +35,7 @@ import java.util.UUID;
  * Driving web adapter for content library use cases.
  */
 @RestController
+@SecurityRequirement(name = OpenApiConfig.BEARER_AUTH)
 public class ContentController {
 
     private final ContentLibraryUseCase useCase;

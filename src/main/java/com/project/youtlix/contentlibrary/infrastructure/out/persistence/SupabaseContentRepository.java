@@ -1,5 +1,6 @@
 package com.project.youtlix.contentlibrary.infrastructure.out.persistence;
 
+import com.project.youtlix.contentlibrary.application.port.in.ResolvedPlayable;
 import com.project.youtlix.contentlibrary.application.port.out.ContentRepository;
 import com.project.youtlix.contentlibrary.domain.model.Content;
 import com.project.youtlix.contentlibrary.domain.model.ContentId;
@@ -124,6 +125,35 @@ public class SupabaseContentRepository implements ContentRepository {
     @Override
     public Optional<VideoFile> videoFileOf(ContentId id) {
         return movieDetails(id.value()).map(MovieDetails::videoFile);
+    }
+
+    @Override
+    public Optional<ResolvedPlayable> resolvePlayable(UUID id) {
+        Optional<VideoFile> movieVideo = movieDetails(id).map(MovieDetails::videoFile);
+        if (movieVideo.isPresent()) {
+            return Optional.of(new ResolvedPlayable(id, ResolvedPlayable.PlayableKind.MOVIE, movieVideo.get()));
+        }
+        return episodeVideoFile(id).map(videoFile ->
+                new ResolvedPlayable(id, ResolvedPlayable.PlayableKind.EPISODE, videoFile)
+        );
+    }
+
+    @Override
+    public boolean isSeries(ContentId id) {
+        Boolean isSeries = jdbcTemplate.query(
+                "select content_type = 'SERIES' as is_series from library.contents where id = ?",
+                rs -> rs.next() ? rs.getBoolean("is_series") : false,
+                id.value()
+        );
+        return Boolean.TRUE.equals(isSeries);
+    }
+
+    private Optional<VideoFile> episodeVideoFile(UUID episodeId) {
+        return jdbcTemplate.query(
+                "select video_uri, video_languages from library.episodes where id = ?",
+                rs -> rs.next() ? Optional.of(videoFile(rs)) : Optional.empty(),
+                episodeId
+        );
     }
 
     @Override
