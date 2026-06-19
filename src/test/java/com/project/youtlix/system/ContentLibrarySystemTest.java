@@ -20,7 +20,9 @@ import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentControlle
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
+import com.project.youtlix.recommendation.domain.model.RecommendationReason;
 import com.project.youtlix.recommendation.domain.model.RecommendationList;
+import com.project.youtlix.recommendation.domain.model.RecommendedItem;
 import com.project.youtlix.recommendation.domain.model.StarRating;
 import org.junit.jupiter.api.Test;
 
@@ -40,10 +42,12 @@ class ContentLibrarySystemTest {
     void contentCreationPathRunsFromWebAdapterToRepositoryPort() {
         InMemoryContentRepository repository = new InMemoryContentRepository();
         ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, new NoOpPublisher());
+        FixedIdentityProvider identityProvider = new FixedIdentityProvider(Role.LIBRARY_ADMIN);
+        RecordingRecommendations recommendations = new RecordingRecommendations();
         ContentController controller = new ContentController(
                 service,
-                new NoRecommendations(),
-                new FixedIdentityProvider(Role.LIBRARY_ADMIN)
+                recommendations,
+                identityProvider
         );
 
         controller.create("Bearer jwt", new ContentRequest(
@@ -58,10 +62,18 @@ class ContentLibrarySystemTest {
                 List.of("pl")
         ));
 
-        List<ContentResponse> response = controller.browse("Bearer jwt", 1, 20).contents();
+        ContentController.LibraryPageResponse response = controller.browse("Bearer jwt", 1, 20);
+        List<ContentResponse> contents = response.contents();
 
-        assertThat(response).hasSize(1);
-        assertThat(response.getFirst().title()).isEqualTo("Clean Architecture");
+        assertThat(contents).hasSize(1);
+        assertThat(contents.getFirst().type()).isEqualTo("MOVIE");
+        assertThat(contents.getFirst().title()).isEqualTo("Clean Architecture");
+        assertThat(contents.getFirst().thumbnailUrl()).isEqualTo("thumb");
+        assertThat(response.pagination().page()).isEqualTo(1);
+        assertThat(response.pagination().size()).isEqualTo(20);
+        assertThat(response.pagination().itemCount()).isEqualTo(1);
+        assertThat(response.recommendations()).hasSize(1);
+        assertThat(recommendations.requestedViewerId).isEqualTo(identityProvider.viewerId().value());
     }
 
     static class InMemoryContentRepository implements ContentRepository {
@@ -148,6 +160,10 @@ class ContentLibrarySystemTest {
         public boolean verify(String jwt) {
             return true;
         }
+
+        ViewerId viewerId() {
+            return viewerId;
+        }
     }
 
     static class NoRecommendations implements RecommendationUseCase {
@@ -176,6 +192,24 @@ class ContentLibrarySystemTest {
                 com.project.youtlix.recommendation.domain.model.ViewerId viewerId,
                 com.project.youtlix.recommendation.domain.model.ContentId contentId
         ) {
+        }
+    }
+
+    static class RecordingRecommendations extends NoRecommendations {
+        private UUID requestedViewerId;
+
+        @Override
+        public RecommendationList generateFor(com.project.youtlix.recommendation.domain.model.ViewerId viewerId) {
+            requestedViewerId = viewerId.value();
+            return new RecommendationList(
+                    viewerId,
+                    Instant.now(),
+                    List.of(new RecommendedItem(
+                            new com.project.youtlix.recommendation.domain.model.ContentId(UUID.randomUUID()),
+                            0.8,
+                            RecommendationReason.GLOBAL_POPULARITY
+                    ))
+            );
         }
     }
 }

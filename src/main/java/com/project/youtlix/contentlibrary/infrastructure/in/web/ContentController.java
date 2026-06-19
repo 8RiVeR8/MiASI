@@ -65,7 +65,8 @@ public class ContentController {
             @RequestParam(defaultValue = "20") int size
     ) {
         UserIdentity identity = currentIdentity(authorization);
-        List<ContentResponse> contents = useCase.browse(new Page(toZeroBasedPage(page), size)).stream()
+        Page requestedPage = toPage(page, size);
+        List<ContentResponse> contents = useCase.browse(requestedPage).stream()
                 .map(ContentResponse::from)
                 .toList();
         List<RecommendedContentResponse> recommendations = recommendationUseCase.generateFor(
@@ -75,7 +76,11 @@ public class ContentController {
                 .stream()
                 .map(RecommendedContentResponse::from)
                 .toList();
-        return new LibraryPageResponse(contents, recommendations);
+        return new LibraryPageResponse(
+                contents,
+                recommendations,
+                new LibraryPaginationResponse(page, size, contents.size())
+        );
     }
 
     /**
@@ -177,13 +182,27 @@ public class ContentController {
         return authorization.startsWith("Bearer ") ? authorization.substring("Bearer ".length()) : authorization;
     }
 
-    private int toZeroBasedPage(int page) {
-        return page <= 0 ? 0 : page - 1;
+    private Page toPage(int page, int size) {
+        if (page < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "page must be greater than or equal to 1");
+        }
+        if (size < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "size must be greater than or equal to 1");
+        }
+        return new Page(page - 1, size);
     }
 
     public record LibraryPageResponse(
             List<ContentResponse> contents,
-            List<RecommendedContentResponse> recommendations
+            List<RecommendedContentResponse> recommendations,
+            LibraryPaginationResponse pagination
+    ) {
+    }
+
+    public record LibraryPaginationResponse(
+            int page,
+            int size,
+            int itemCount
     ) {
     }
 
