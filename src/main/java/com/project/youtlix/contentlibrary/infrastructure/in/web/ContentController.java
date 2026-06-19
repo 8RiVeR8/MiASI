@@ -107,7 +107,7 @@ public class ContentController {
             @RequestParam(required = false) Integer yearTo
     ) {
         currentIdentity(authorization);
-        SearchCriteria criteria = new SearchCriteria(phrase, genre, yearFrom, yearTo);
+        SearchCriteria criteria = toSearchCriteria(phrase, genre, yearFrom, yearTo);
         return useCase.filter(criteria).stream().map(ContentResponse::from).toList();
     }
 
@@ -187,6 +187,18 @@ public class ContentController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "phrase must not be blank");
         }
         return phrase.trim();
+    }
+
+    private SearchCriteria toSearchCriteria(String phrase, Genre genre, Integer yearFrom, Integer yearTo) {
+        try {
+            return new SearchCriteria(optionalPhrase(phrase), genre, yearFrom, yearTo);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
+        }
+    }
+
+    private String optionalPhrase(String phrase) {
+        return phrase == null || phrase.isBlank() ? null : phrase.trim();
     }
 
     private Page toPage(int page, int size) {

@@ -135,9 +135,119 @@ class ContentLibrarySystemTest {
                 .isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
+    @Test
+    void contentFilteringPathRunsFromWebAdapterThroughUseCaseAndApplicationService() {
+        InMemoryContentRepository repository = new InMemoryContentRepository();
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, new NoOpPublisher());
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.VIEWER)
+        );
+
+        service.createMovie(new Metadata(
+                "Clean Architecture",
+                "Hexagonal architecture documentary",
+                "thumb-clean",
+                Genre.DOCUMENTARY,
+                2026,
+                List.of(new Keyword("architecture"))
+        ), Duration.ofSeconds(2400), new VideoFile("cdn://clean-architecture", List.of("pl")));
+        service.createMovie(new Metadata(
+                "Comedy Night",
+                "Stand-up special",
+                "thumb-comedy",
+                Genre.COMEDY,
+                2024,
+                List.of(new Keyword("standup"))
+        ), Duration.ofSeconds(3600), new VideoFile("cdn://comedy-night", List.of("pl")));
+        service.createMovie(new Metadata(
+                "Old Documentary",
+                "Older documentary",
+                "thumb-old",
+                Genre.DOCUMENTARY,
+                2020,
+                List.of(new Keyword("archive"))
+        ), Duration.ofSeconds(1800), new VideoFile("cdn://old-documentary", List.of("pl")));
+        service.createMovie(new Metadata(
+                "Architecture Clean",
+                "Same words but title does not start with filter phrase",
+                "thumb-architecture-clean",
+                Genre.DOCUMENTARY,
+                2026,
+                List.of(new Keyword("design"))
+        ), Duration.ofSeconds(1800), new VideoFile("cdn://architecture-clean", List.of("pl")));
+
+        List<ContentResponse> response = controller.filter("Bearer jwt", "architecture", Genre.DOCUMENTARY, 2025, 2026);
+
+        assertThat(response).extracting(ContentResponse::title)
+                .containsExactlyInAnyOrder("Clean Architecture", "Architecture Clean");
+        assertThat(response)
+                .extracting(ContentResponse::genre)
+                .containsOnly(Genre.DOCUMENTARY.name());
+        assertThat(response)
+                .extracting(ContentResponse::releaseYear)
+                .allSatisfy(year -> assertThat(year).isBetween(2025, 2026));
+        assertThat(repository.lastMatchingCriteria)
+                .isEqualTo(new SearchCriteria("architecture", Genre.DOCUMENTARY, 2025, 2026));
+    }
+
+    @Test
+    void contentFilteringCanUsePhraseFromSearchAsAdditionalOptionalCriterion() {
+        InMemoryContentRepository repository = new InMemoryContentRepository();
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, new NoOpPublisher());
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.VIEWER)
+        );
+
+        service.createMovie(new Metadata(
+                "Clean Code",
+                "Engineering documentary",
+                "thumb-clean-code",
+                Genre.DOCUMENTARY,
+                2026,
+                List.of(new Keyword("architecture"))
+        ), Duration.ofSeconds(2400), new VideoFile("cdn://clean-code", List.of("pl")));
+        service.createMovie(new Metadata(
+                "Clean Comedy",
+                "Comedy special",
+                "thumb-clean-comedy",
+                Genre.COMEDY,
+                2026,
+                List.of(new Keyword("architecture"))
+        ), Duration.ofSeconds(2400), new VideoFile("cdn://clean-comedy", List.of("pl")));
+
+        List<ContentResponse> response = controller.filter("Bearer jwt", "architecture", Genre.DOCUMENTARY, null, null);
+
+        assertThat(response).singleElement()
+                .extracting(ContentResponse::title)
+                .isEqualTo("Clean Code");
+    }
+
+    @Test
+    void contentFilteringRejectsInvalidYearRange() {
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(
+                new InMemoryContentRepository(),
+                new NoOpPublisher()
+        );
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.VIEWER)
+        );
+
+        assertThatThrownBy(() -> controller.filter("Bearer jwt", null, Genre.DOCUMENTARY, 2027, 2020))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting("statusCode")
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
     static class InMemoryContentRepository implements ContentRepository {
         private final Map<ContentId, Content> contents = new LinkedHashMap<>();
         private String lastKeywordPhrase;
+        private SearchCriteria lastMatchingCriteria;
 
         @Override
         public void save(Content content) {
@@ -152,6 +262,7 @@ class ContentLibrarySystemTest {
 
         @Override
         public List<Content> matching(SearchCriteria criteria) {
+            lastMatchingCriteria = criteria;
             return new ArrayList<>(contents.values());
         }
 

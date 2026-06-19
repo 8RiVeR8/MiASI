@@ -25,7 +25,7 @@ public class ContentSearchService {
     public List<Content> searchByKeyword(List<Content> candidates, String phrase) {
         return candidates.stream()
                 .filter(Content::available)
-                .filter(content -> phraseMatches(content, phrase))
+                .filter(content -> titleOrKeywordContains(content, phrase))
                 .toList();
     }
 
@@ -42,11 +42,11 @@ public class ContentSearchService {
                 .filter(content -> criteria.genre() == null || content.metadata().genre() == criteria.genre())
                 .filter(content -> criteria.yearFrom() == null || content.metadata().releaseYear() >= criteria.yearFrom())
                 .filter(content -> criteria.yearTo() == null || content.metadata().releaseYear() <= criteria.yearTo())
-                .filter(content -> phraseMatches(content, criteria.phrase()))
+                .filter(content -> titleOrKeywordContains(content, criteria.phrase()))
                 .toList();
     }
 
-    private boolean phraseMatches(Content content, String phrase) {
+    private boolean titleOrKeywordContains(Content content, String phrase) {
         if (phrase == null || phrase.isBlank()) {
             return true;
         }
@@ -57,4 +57,5 @@ public class ContentSearchService {
                 .map(value -> value.toLowerCase(Locale.ROOT))
                 .anyMatch(value -> value.contains(normalized));
     }
+
 }
