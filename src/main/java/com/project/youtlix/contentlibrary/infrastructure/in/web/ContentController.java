@@ -118,7 +118,8 @@ public class ContentController {
     @ResponseStatus(HttpStatus.CREATED)
     public UUID create(@RequestHeader("Authorization") String authorization, @RequestBody ContentRequest request) {
         requireLibraryAdmin(authorization);
-        if (request.durationSeconds() != null && request.videoUri() != null) {
+        if (hasMovieFields(request)) {
+            requireCompleteMovieFields(request);
             return useCase.createMovie(
                     toMetadata(request),
                     Duration.ofSeconds(request.durationSeconds()),
@@ -152,17 +153,21 @@ public class ContentController {
     }
 
     private Metadata toMetadata(ContentRequest request) {
-        List<Keyword> keywords = request.keywords() == null
-                ? List.of()
-                : request.keywords().stream().map(Keyword::new).toList();
-        return new Metadata(
-                request.title(),
-                request.description(),
-                request.thumbnailUrl(),
-                request.genre(),
-                request.releaseYear(),
-                keywords
-        );
+        try {
+            List<Keyword> keywords = request.keywords() == null
+                    ? List.of()
+                    : request.keywords().stream().map(Keyword::new).toList();
+            return new Metadata(
+                    request.title(),
+                    request.description(),
+                    request.thumbnailUrl(),
+                    request.genre(),
+                    request.releaseYear(),
+                    keywords
+            );
+        } catch (IllegalArgumentException | NullPointerException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
+        }
     }
 
     private UserIdentity currentIdentity(String authorization) {
@@ -172,6 +177,24 @@ public class ContentController {
     private void requireLibraryAdmin(String authorization) {
         if (!currentIdentity(authorization).canManageLibrary()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "LIBRARY_ADMIN role required");
+        }
+    }
+
+    private boolean hasMovieFields(ContentRequest request) {
+        return request.durationSeconds() != null
+                || request.videoUri() != null
+                || request.languages() != null && !request.languages().isEmpty();
+    }
+
+    private void requireCompleteMovieFields(ContentRequest request) {
+        if (request.durationSeconds() == null || request.videoUri() == null || request.videoUri().isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "durationSeconds and videoUri are required for movie content"
+            );
+        }
+        if (request.durationSeconds() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "duration must be positive");
         }
     }
 

@@ -19,6 +19,7 @@ import com.project.youtlix.contentlibrary.domain.model.Page;
 import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
 import com.project.youtlix.contentlibrary.domain.model.Series;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
+import com.project.youtlix.contentlibrary.domain.model.event.ContentAdded;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentController;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
@@ -47,7 +48,8 @@ class ContentLibrarySystemTest {
     @Test
     void contentCreationPathRunsFromWebAdapterToRepositoryPort() {
         InMemoryContentRepository repository = new InMemoryContentRepository();
-        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, new NoOpPublisher());
+        RecordingPublisher publisher = new RecordingPublisher();
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, publisher);
         FixedIdentityProvider identityProvider = new FixedIdentityProvider(Role.LIBRARY_ADMIN);
         RecordingRecommendations recommendations = new RecordingRecommendations();
         ContentController controller = new ContentController(
@@ -75,6 +77,10 @@ class ContentLibrarySystemTest {
         assertThat(contents.getFirst().type()).isEqualTo("MOVIE");
         assertThat(contents.getFirst().title()).isEqualTo("Clean Architecture");
         assertThat(contents.getFirst().thumbnailUrl()).isEqualTo("thumb");
+        assertThat(publisher.events)
+                .anySatisfy(event -> assertThat(event)
+                        .isInstanceOfSatisfying(ContentAdded.class, added ->
+                                assertThat(added.title()).isEqualTo("Clean Architecture")));
         assertThat(response.pagination().page()).isEqualTo(1);
         assertThat(response.pagination().size()).isEqualTo(20);
         assertThat(response.pagination().itemCount()).isEqualTo(1);
@@ -244,6 +250,62 @@ class ContentLibrarySystemTest {
                 .isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
+    @Test
+    void contentCreationRequiresLibraryAdminRole() {
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(
+                new InMemoryContentRepository(),
+                new NoOpPublisher()
+        );
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.VIEWER)
+        );
+
+        assertThatThrownBy(() -> controller.create("Bearer jwt", new ContentRequest(
+                "Clean Architecture",
+                "System test path",
+                "thumb",
+                Genre.DOCUMENTARY,
+                2026,
+                List.of("architecture"),
+                2400,
+                "cdn://clean-architecture",
+                List.of("pl")
+        )))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting("statusCode")
+                .isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void contentCreationRejectsIncompleteMovieRequest() {
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(
+                new InMemoryContentRepository(),
+                new NoOpPublisher()
+        );
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.LIBRARY_ADMIN)
+        );
+
+        assertThatThrownBy(() -> controller.create("Bearer jwt", new ContentRequest(
+                "Clean Architecture",
+                "System test path",
+                "thumb",
+                Genre.DOCUMENTARY,
+                2026,
+                List.of("architecture"),
+                2400,
+                null,
+                List.of("pl")
+        )))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting("statusCode")
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
     static class InMemoryContentRepository implements ContentRepository {
         private final Map<ContentId, Content> contents = new LinkedHashMap<>();
         private String lastKeywordPhrase;
@@ -312,6 +374,15 @@ class ContentLibrarySystemTest {
     static class NoOpPublisher implements DomainEventPublisher {
         @Override
         public void publish(Object event) {
+        }
+    }
+
+    static class RecordingPublisher implements DomainEventPublisher {
+        private final List<Object> events = new ArrayList<>();
+
+        @Override
+        public void publish(Object event) {
+            events.add(event);
         }
     }
 
