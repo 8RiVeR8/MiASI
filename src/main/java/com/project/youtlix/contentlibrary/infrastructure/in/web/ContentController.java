@@ -2,6 +2,7 @@ package com.project.youtlix.contentlibrary.infrastructure.in.web;
 
 import com.project.youtlix.authentication.application.port.out.IdentityProvider;
 import com.project.youtlix.authentication.domain.model.UserIdentity;
+import com.project.youtlix.contentlibrary.application.port.in.ContentNotFoundException;
 import com.project.youtlix.contentlibrary.application.port.in.ContentLibraryUseCase;
 import com.project.youtlix.contentlibrary.domain.model.ContentId;
 import com.project.youtlix.contentlibrary.domain.model.Duration;
@@ -16,7 +17,9 @@ import com.project.youtlix.recommendation.domain.model.RecommendedItem;
 import com.project.youtlix.common.infrastructure.in.web.OpenApiConfig;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,6 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -136,7 +140,7 @@ public class ContentController {
     public void update(
             @RequestHeader("Authorization") String authorization,
             @PathVariable UUID id,
-            @RequestBody ContentRequest request
+            @RequestBody ContentMetadataRequest request
     ) {
         requireLibraryAdmin(authorization);
         useCase.updateMetadata(new ContentId(id), toMetadata(request));
@@ -153,21 +157,55 @@ public class ContentController {
     }
 
     private Metadata toMetadata(ContentRequest request) {
+        return toMetadata(
+                request.title(),
+                request.description(),
+                request.thumbnailUrl(),
+                request.genre(),
+                request.releaseYear(),
+                request.keywords()
+        );
+    }
+
+    private Metadata toMetadata(ContentMetadataRequest request) {
+        return toMetadata(
+                request.title(),
+                request.description(),
+                request.thumbnailUrl(),
+                request.genre(),
+                request.releaseYear(),
+                request.keywords()
+        );
+    }
+
+    private Metadata toMetadata(
+            String title,
+            String description,
+            String thumbnailUrl,
+            Genre genre,
+            int releaseYear,
+            List<String> rawKeywords
+    ) {
         try {
-            List<Keyword> keywords = request.keywords() == null
+            List<Keyword> keywords = rawKeywords == null
                     ? List.of()
-                    : request.keywords().stream().map(Keyword::new).toList();
+                    : rawKeywords.stream().map(Keyword::new).toList();
             return new Metadata(
-                    request.title(),
-                    request.description(),
-                    request.thumbnailUrl(),
-                    request.genre(),
-                    request.releaseYear(),
+                    title,
+                    description,
+                    thumbnailUrl,
+                    genre,
+                    releaseYear,
                     keywords
             );
         } catch (IllegalArgumentException | NullPointerException exception) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
         }
+    }
+
+    @ExceptionHandler(ContentNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleContentNotFound(ContentNotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
     }
 
     private UserIdentity currentIdentity(String authorization) {

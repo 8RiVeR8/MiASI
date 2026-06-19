@@ -20,7 +20,9 @@ import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
 import com.project.youtlix.contentlibrary.domain.model.Series;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.contentlibrary.domain.model.event.ContentAdded;
+import com.project.youtlix.contentlibrary.domain.model.event.ContentModified;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentController;
+import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentMetadataRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
@@ -304,6 +306,78 @@ class ContentLibrarySystemTest {
                 .isInstanceOf(ResponseStatusException.class)
                 .extracting("statusCode")
                 .isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void contentMetadataUpdatePathRunsFromWebAdapterThroughUseCaseAndPublishesEvent() {
+        InMemoryContentRepository repository = new InMemoryContentRepository();
+        RecordingPublisher publisher = new RecordingPublisher();
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, publisher);
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.LIBRARY_ADMIN)
+        );
+        UUID contentId = controller.create("Bearer jwt", new ContentRequest(
+                "John Wick",
+                "Original description",
+                "original-thumb",
+                Genre.ACTION,
+                2014,
+                List.of("action"),
+                6060,
+                "https://www.youtube.com/watch?v=C0BMx-qxsP4",
+                List.of("pl")
+        ));
+        publisher.events.clear();
+
+        controller.update("Bearer jwt", contentId, new ContentMetadataRequest(
+                "John Wick: Chapter 1",
+                "Updated description",
+                "updated-thumb",
+                Genre.ACTION,
+                2014,
+                List.of("action", "revenge")
+        ));
+
+        ContentController.LibraryPageResponse response = controller.browse("Bearer jwt", 1, 20);
+
+        assertThat(response.contents()).singleElement()
+                .satisfies(content -> {
+                    assertThat(content.id()).isEqualTo(contentId);
+                    assertThat(content.title()).isEqualTo("John Wick: Chapter 1");
+                    assertThat(content.description()).isEqualTo("Updated description");
+                    assertThat(content.thumbnailUrl()).isEqualTo("updated-thumb");
+                });
+        assertThat(publisher.events)
+                .anySatisfy(event -> assertThat(event)
+                        .isInstanceOfSatisfying(ContentModified.class, modified ->
+                                assertThat(modified.contentId().value()).isEqualTo(contentId)));
+    }
+
+    @Test
+    void contentMetadataUpdateRequiresLibraryAdminRole() {
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(
+                new InMemoryContentRepository(),
+                new NoOpPublisher()
+        );
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.VIEWER)
+        );
+
+        assertThatThrownBy(() -> controller.update("Bearer jwt", UUID.randomUUID(), new ContentMetadataRequest(
+                "John Wick",
+                "Description",
+                "thumb",
+                Genre.ACTION,
+                2014,
+                List.of("action")
+        )))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting("statusCode")
+                .isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     static class InMemoryContentRepository implements ContentRepository {

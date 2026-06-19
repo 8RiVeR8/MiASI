@@ -4,6 +4,7 @@ import com.project.youtlix.common.application.port.out.DomainEventPublisher;
 import com.project.youtlix.contentlibrary.application.port.in.ContentCatalogApi;
 import com.project.youtlix.contentlibrary.application.port.in.ContentLibraryUseCase;
 import com.project.youtlix.contentlibrary.application.port.in.ContentMetadata;
+import com.project.youtlix.contentlibrary.application.port.in.ContentNotFoundException;
 import com.project.youtlix.contentlibrary.application.port.in.PlayableNotFoundException;
 import com.project.youtlix.contentlibrary.application.port.in.ResolvedPlayable;
 import com.project.youtlix.contentlibrary.application.port.in.SeriesNotPlayableException;
@@ -92,7 +93,7 @@ public class ContentLibraryApplicationService implements ContentLibraryUseCase, 
     @Override
     public void updateMetadata(ContentId id, Metadata metadata) {
         Content content = contentRepository.ofId(id)
-                .orElseThrow(() -> new IllegalArgumentException("content not found: " + id.value()));
+                .orElseThrow(() -> new ContentNotFoundException(id.value()));
         content.updateMetadata(metadata);
         contentRepository.save(content);
         eventPublisher.publishAll(content.occurredEvents());
