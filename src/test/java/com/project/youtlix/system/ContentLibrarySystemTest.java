@@ -21,6 +21,7 @@ import com.project.youtlix.contentlibrary.domain.model.Series;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.contentlibrary.domain.model.event.ContentAdded;
 import com.project.youtlix.contentlibrary.domain.model.event.ContentModified;
+import com.project.youtlix.contentlibrary.domain.model.event.ContentRemoved;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentController;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentMetadataRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentRequest;
@@ -380,6 +381,56 @@ class ContentLibrarySystemTest {
                 .isEqualTo(HttpStatus.FORBIDDEN);
     }
 
+    @Test
+    void contentRemovalPathRunsFromWebAdapterThroughUseCaseAndPublishesEvent() {
+        InMemoryContentRepository repository = new InMemoryContentRepository();
+        RecordingPublisher publisher = new RecordingPublisher();
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, publisher);
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.LIBRARY_ADMIN)
+        );
+        UUID contentId = controller.create("Bearer jwt", new ContentRequest(
+                "John Wick",
+                "Original description",
+                "original-thumb",
+                Genre.ACTION,
+                2014,
+                List.of("action"),
+                6060,
+                "https://www.youtube.com/watch?v=C0BMx-qxsP4",
+                List.of("pl")
+        ));
+        publisher.events.clear();
+
+        controller.delete("Bearer jwt", contentId);
+
+        assertThat(controller.browse("Bearer jwt", 1, 20).contents()).isEmpty();
+        assertThat(publisher.events)
+                .anySatisfy(event -> assertThat(event)
+                        .isInstanceOfSatisfying(ContentRemoved.class, removed ->
+                                assertThat(removed.contentId().value()).isEqualTo(contentId)));
+    }
+
+    @Test
+    void contentRemovalRequiresLibraryAdminRole() {
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(
+                new InMemoryContentRepository(),
+                new NoOpPublisher()
+        );
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.VIEWER)
+        );
+
+        assertThatThrownBy(() -> controller.delete("Bearer jwt", UUID.randomUUID()))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting("statusCode")
+                .isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
     static class InMemoryContentRepository implements ContentRepository {
         private final Map<ContentId, Content> contents = new LinkedHashMap<>();
         private String lastKeywordPhrase;
@@ -509,6 +560,10 @@ class ContentLibrarySystemTest {
                 com.project.youtlix.recommendation.domain.model.ViewerId viewerId,
                 com.project.youtlix.recommendation.domain.model.ContentId contentId
         ) {
+        }
+
+        @Override
+        public void removeFromWatchlists(com.project.youtlix.recommendation.domain.model.ContentId contentId) {
         }
     }
 

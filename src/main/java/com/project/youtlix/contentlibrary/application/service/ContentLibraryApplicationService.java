@@ -101,11 +101,11 @@ public class ContentLibraryApplicationService implements ContentLibraryUseCase, 
 
     @Override
     public void remove(ContentId id) {
-        contentRepository.ofId(id).ifPresent(content -> {
-            content.withdraw();
-            eventPublisher.publishAll(content.occurredEvents());
-        });
+        Content content = contentRepository.ofId(id)
+                .orElseThrow(() -> new ContentNotFoundException(id.value()));
+        content.withdraw();
         contentRepository.remove(id);
+        eventPublisher.publishAll(content.occurredEvents());
     }
 
     @Override
