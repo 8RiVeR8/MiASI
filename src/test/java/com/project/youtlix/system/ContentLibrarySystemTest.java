@@ -10,7 +10,10 @@ import com.project.youtlix.contentlibrary.application.port.out.ContentRepository
 import com.project.youtlix.contentlibrary.application.service.ContentLibraryApplicationService;
 import com.project.youtlix.contentlibrary.domain.model.Content;
 import com.project.youtlix.contentlibrary.domain.model.ContentId;
+import com.project.youtlix.contentlibrary.domain.model.Duration;
 import com.project.youtlix.contentlibrary.domain.model.Genre;
+import com.project.youtlix.contentlibrary.domain.model.Keyword;
+import com.project.youtlix.contentlibrary.domain.model.Metadata;
 import com.project.youtlix.contentlibrary.domain.model.Movie;
 import com.project.youtlix.contentlibrary.domain.model.Page;
 import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
@@ -25,6 +28,8 @@ import com.project.youtlix.recommendation.domain.model.RecommendationList;
 import com.project.youtlix.recommendation.domain.model.RecommendedItem;
 import com.project.youtlix.recommendation.domain.model.StarRating;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -35,6 +40,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ContentLibrarySystemTest {
 
@@ -76,8 +82,62 @@ class ContentLibrarySystemTest {
         assertThat(recommendations.requestedViewerId).isEqualTo(identityProvider.viewerId().value());
     }
 
+    @Test
+    void contentSearchPathRunsFromWebAdapterThroughUseCaseAndApplicationService() {
+        InMemoryContentRepository repository = new InMemoryContentRepository();
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, new NoOpPublisher());
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.VIEWER)
+        );
+
+        service.createMovie(new Metadata(
+                "Clean Architecture",
+                "Hexagonal architecture documentary",
+                "thumb-clean",
+                Genre.DOCUMENTARY,
+                2026,
+                List.of(new Keyword("Architecture"))
+        ), Duration.ofSeconds(2400), new VideoFile("cdn://clean-architecture", List.of("pl")));
+        service.createMovie(new Metadata(
+                "Comedy Night",
+                "Stand-up special",
+                "thumb-comedy",
+                Genre.COMEDY,
+                2024,
+                List.of(new Keyword("standup"))
+        ), Duration.ofSeconds(3600), new VideoFile("cdn://comedy-night", List.of("pl")));
+
+        List<ContentResponse> response = controller.search("Bearer jwt", " ARCHITECTURE ");
+
+        assertThat(response).singleElement()
+                .extracting(ContentResponse::title)
+                .isEqualTo("Clean Architecture");
+        assertThat(repository.lastKeywordPhrase).isEqualTo("ARCHITECTURE");
+    }
+
+    @Test
+    void contentSearchRejectsBlankPhrase() {
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(
+                new InMemoryContentRepository(),
+                new NoOpPublisher()
+        );
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.VIEWER)
+        );
+
+        assertThatThrownBy(() -> controller.search("Bearer jwt", " "))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting("statusCode")
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
     static class InMemoryContentRepository implements ContentRepository {
         private final Map<ContentId, Content> contents = new LinkedHashMap<>();
+        private String lastKeywordPhrase;
 
         @Override
         public void save(Content content) {
@@ -97,6 +157,7 @@ class ContentLibrarySystemTest {
 
         @Override
         public List<Content> byKeyword(String phrase) {
+            lastKeywordPhrase = phrase;
             return new ArrayList<>(contents.values());
         }
 

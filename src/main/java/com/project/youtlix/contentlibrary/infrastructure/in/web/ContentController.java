@@ -92,7 +92,7 @@ public class ContentController {
             @RequestParam String phrase
     ) {
         currentIdentity(authorization);
-        return useCase.searchByKeyword(phrase).stream().map(ContentResponse::from).toList();
+        return useCase.searchByKeyword(requiredPhrase(phrase)).stream().map(ContentResponse::from).toList();
     }
 
     /**
@@ -180,6 +180,13 @@ public class ContentController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorization header is required");
         }
         return authorization.startsWith("Bearer ") ? authorization.substring("Bearer ".length()) : authorization;
+    }
+
+    private String requiredPhrase(String phrase) {
+        if (phrase == null || phrase.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "phrase must not be blank");
+        }
+        return phrase.trim();
     }
 
     private Page toPage(int page, int size) {

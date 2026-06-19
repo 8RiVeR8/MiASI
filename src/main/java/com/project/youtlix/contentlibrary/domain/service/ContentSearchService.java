@@ -5,6 +5,7 @@ import com.project.youtlix.contentlibrary.domain.model.Keyword;
 import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Domain search rules used by application services after data is loaded by ports.
@@ -49,8 +50,11 @@ public class ContentSearchService {
         if (phrase == null || phrase.isBlank()) {
             return true;
         }
-        String normalized = phrase.trim().toLowerCase();
-        return content.metadata().title().toLowerCase().contains(normalized)
-                || content.metadata().keywords().stream().map(Keyword::value).anyMatch(value -> value.contains(normalized));
+        String normalized = phrase.trim().toLowerCase(Locale.ROOT);
+        return content.metadata().title().toLowerCase(Locale.ROOT).contains(normalized)
+                || content.metadata().keywords().stream()
+                .map(Keyword::value)
+                .map(value -> value.toLowerCase(Locale.ROOT))
+                .anyMatch(value -> value.contains(normalized));
     }
 }
