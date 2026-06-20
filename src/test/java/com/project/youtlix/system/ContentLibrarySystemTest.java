@@ -85,6 +85,10 @@ class ContentLibrarySystemTest {
         assertThat(contents.getFirst().type()).isEqualTo("MOVIE");
         assertThat(contents.getFirst().title()).isEqualTo("Clean Architecture");
         assertThat(contents.getFirst().thumbnailUrl()).isEqualTo("thumb");
+        assertThat(contents.getFirst().durationSeconds()).isEqualTo(2400);
+        assertThat(contents.getFirst().videoUri()).isEqualTo("cdn://clean-architecture");
+        assertThat(contents.getFirst().languages()).containsExactly("pl");
+        assertThat(contents.getFirst().seasons()).isEmpty();
         assertThat(publisher.events)
                 .anySatisfy(event -> assertThat(event)
                         .isInstanceOfSatisfying(ContentAdded.class, added ->
@@ -349,6 +353,7 @@ class ContentLibrarySystemTest {
 
         Content stored = repository.ofId(new ContentId(seriesId)).orElseThrow();
         ResolvedPlayable playable = service.resolvePlayable(episodeId);
+        ContentResponse response = controller.browse("Bearer jwt", 1, 20).contents().getFirst();
 
         assertThat(stored).isInstanceOfSatisfying(Series.class, series ->
                 assertThat(series.seasons()).singleElement()
@@ -362,6 +367,25 @@ class ContentLibrarySystemTest {
                                         assertThat(episode.title()).isEqualTo("Pilot");
                                     });
                         }));
+        assertThat(response.type()).isEqualTo(ContentType.SERIES.name());
+        assertThat(response.durationSeconds()).isNull();
+        assertThat(response.videoUri()).isNull();
+        assertThat(response.languages()).isEmpty();
+        assertThat(response.seasons()).singleElement()
+                .satisfies(season -> {
+                    assertThat(season.id()).isEqualTo(seasonId);
+                    assertThat(season.number()).isEqualTo(1);
+                    assertThat(season.title()).isEqualTo("Season 1");
+                    assertThat(season.episodes()).singleElement()
+                            .satisfies(episode -> {
+                                assertThat(episode.id()).isEqualTo(episodeId);
+                                assertThat(episode.number()).isEqualTo(1);
+                                assertThat(episode.title()).isEqualTo("Pilot");
+                                assertThat(episode.durationSeconds()).isEqualTo(3480);
+                                assertThat(episode.videoUri()).isEqualTo("cdn://breaking-bad/s01e01");
+                                assertThat(episode.languages()).containsExactly("pl", "en");
+                            });
+                });
         assertThat(playable.kind()).isEqualTo(ResolvedPlayable.PlayableKind.EPISODE);
         assertThat(playable.videoFile().uri()).isEqualTo("cdn://breaking-bad/s01e01");
     }
