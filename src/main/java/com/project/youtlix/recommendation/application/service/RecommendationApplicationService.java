@@ -3,7 +3,7 @@ package com.project.youtlix.recommendation.application.service;
 import com.project.youtlix.common.application.port.out.DomainEventPublisher;
 import com.project.youtlix.contentlibrary.application.port.out.ContentRepository;
 import com.project.youtlix.contentlibrary.domain.model.Genre;
-import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
+import com.project.youtlix.recommendation.domain.model.RecommendationResponse;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
 import com.project.youtlix.recommendation.application.port.out.ContentCatalogPort;
 import com.project.youtlix.recommendation.application.port.out.RatingRepository;
@@ -137,21 +137,76 @@ public class RecommendationApplicationService implements RecommendationUseCase {
     }
 
     /**
-     * Converts recommendation list to content responses ready for display.
+     * Converts recommendation list to recommendation responses ready for infrastructure layer.
      *
      * @param recommendations generated recommendations
-     * @return list of content responses
+     * @return list of recommendation responses
      */
     @Override
-    public List<ContentResponse> toContentResponses(RecommendationList recommendations) {
+    public List<RecommendationResponse> toContentResponses(RecommendationList recommendations) {
         return recommendations.items().stream()
                 .map(item -> contentRepository.ofId(
                         new com.project.youtlix.contentlibrary.domain.model.ContentId(item.contentId().value())
                 ))
                 .flatMap(java.util.Optional::stream)
-                .map(ContentResponse::from)
+                .map(this::mapToRecommendationResponse)
                 .limit(10)
                 .toList();
+    }
+
+    private RecommendationResponse mapToRecommendationResponse(com.project.youtlix.contentlibrary.domain.model.Content content) {
+        var metadata = content.metadata();
+        if (content instanceof com.project.youtlix.contentlibrary.domain.model.Movie movie) {
+            return new RecommendationResponse(
+                    content.id().value(),
+                    "MOVIE",
+                    metadata.title(),
+                    metadata.description(),
+                    metadata.thumbnailUrl(),
+                    metadata.genre().name(),
+                    metadata.releaseYear(),
+                    content.available(),
+                    movie.duration().seconds(),
+                    movie.videoFile().uri(),
+                    movie.videoFile().languages(),
+                    List.of()
+            );
+        }
+        var series = (com.project.youtlix.contentlibrary.domain.model.Series) content;
+        return new RecommendationResponse(
+                content.id().value(),
+                "SERIES",
+                metadata.title(),
+                metadata.description(),
+                metadata.thumbnailUrl(),
+                metadata.genre().name(),
+                metadata.releaseYear(),
+                content.available(),
+                null,
+                null,
+                List.of(),
+                series.seasons().stream().map(this::mapToSeasonResponse).toList()
+        );
+    }
+
+    private RecommendationResponse.SeasonResponse mapToSeasonResponse(com.project.youtlix.contentlibrary.domain.model.Season season) {
+        return new RecommendationResponse.SeasonResponse(
+                season.id().value(),
+                season.number(),
+                season.title(),
+                season.episodes().stream().map(this::mapToEpisodeResponse).toList()
+        );
+    }
+
+    private RecommendationResponse.EpisodeResponse mapToEpisodeResponse(com.project.youtlix.contentlibrary.domain.model.Episode episode) {
+        return new RecommendationResponse.EpisodeResponse(
+                episode.id().value(),
+                episode.number(),
+                episode.title(),
+                episode.duration().seconds(),
+                episode.videoFile().uri(),
+                episode.videoFile().languages()
+        );
     }
 
 

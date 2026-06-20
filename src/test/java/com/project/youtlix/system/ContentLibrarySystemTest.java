@@ -30,6 +30,7 @@ import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentType;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.EpisodeRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.SeasonRequest;
+import com.project.youtlix.recommendation.domain.model.RecommendationResponse;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
 import com.project.youtlix.recommendation.domain.model.RecommendationReason;
 import com.project.youtlix.recommendation.domain.model.RecommendationList;
@@ -854,7 +855,7 @@ class ContentLibrarySystemTest {
         }
 
         @Override
-        public List<ContentResponse> toContentResponses(RecommendationList recommendations) {
+        public List<RecommendationResponse> toContentResponses(RecommendationList recommendations) {
             return List.of();
         }
 

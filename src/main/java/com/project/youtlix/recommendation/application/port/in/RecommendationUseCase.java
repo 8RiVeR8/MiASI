@@ -1,6 +1,6 @@
 package com.project.youtlix.recommendation.application.port.in;
 
-import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
+import com.project.youtlix.recommendation.domain.model.RecommendationResponse;
 import com.project.youtlix.recommendation.domain.model.ContentId;
 import com.project.youtlix.recommendation.domain.model.RecommendationList;
 import com.project.youtlix.recommendation.domain.model.StarRating;
@@ -16,7 +16,7 @@ public interface RecommendationUseCase {
     /** Generates recommendations for a viewer. */
     RecommendationList generateFor(ViewerId viewerId);
 
-    List<ContentResponse> toContentResponses(RecommendationList recommendations);
+    List<RecommendationResponse> toContentResponses(RecommendationList recommendations);
 
     /** Rates content with one to five stars. */
     void rate(ViewerId viewerId, ContentId contentId, StarRating stars);

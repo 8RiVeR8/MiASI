@@ -3,6 +3,7 @@ package com.project.youtlix.recommendation.infrastructure.in.web;
 import com.project.youtlix.authentication.application.port.out.IdentityProvider;
 import com.project.youtlix.common.infrastructure.in.web.OpenApiConfig;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
+import com.project.youtlix.recommendation.domain.model.RecommendationResponse;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
 import com.project.youtlix.recommendation.domain.model.ContentId;
 import com.project.youtlix.recommendation.domain.model.StarRating;
@@ -43,7 +44,43 @@ public class RatingController {
 
     @GetMapping("/recommended/library")
     public List<ContentResponse> recommendedLibrary(@RequestHeader("Authorization") String authorization) {
-        return useCase.toContentResponses(useCase.generateFor(currentViewer(authorization)));
+        List<RecommendationResponse> recommendations = useCase.toContentResponses(useCase.generateFor(currentViewer(authorization)));
+        return recommendations.stream()
+                .map(this::mapToContentResponse)
+                .toList();
+    }
+
+    private ContentResponse mapToContentResponse(RecommendationResponse response) {
+        return new ContentResponse(
+                response.id(),
+                response.type(),
+                response.title(),
+                response.description(),
+                response.thumbnailUrl(),
+                response.genre(),
+                response.releaseYear(),
+                response.available(),
+                response.durationSeconds(),
+                response.videoUri(),
+                response.languages(),
+                response.seasons().stream()
+                        .map(season -> new ContentResponse.SeasonResponse(
+                                season.id(),
+                                season.number(),
+                                season.title(),
+                                season.episodes().stream()
+                                        .map(episode -> new ContentResponse.EpisodeResponse(
+                                                episode.id(),
+                                                episode.number(),
+                                                episode.title(),
+                                                episode.durationSeconds(),
+                                                episode.videoUri(),
+                                                episode.languages()
+                                        ))
+                                        .toList()
+                        ))
+                        .toList()
+        );
     }
 
     private ViewerId currentViewer(String authorization) {
