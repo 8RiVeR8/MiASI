@@ -78,8 +78,7 @@ class ContentLibrarySystemTest {
                 List.of("pl")
         ));
 
-        ContentController.LibraryPageResponse response = controller.browse("Bearer jwt", 1, 20);
-        List<ContentResponse> contents = response.contents();
+        List<ContentResponse> contents = controller.browse("Bearer jwt", 1, 20);
 
         assertThat(contents).hasSize(1);
         assertThat(contents.getFirst().type()).isEqualTo("MOVIE");
@@ -93,11 +92,6 @@ class ContentLibrarySystemTest {
                 .anySatisfy(event -> assertThat(event)
                         .isInstanceOfSatisfying(ContentAdded.class, added ->
                                 assertThat(added.title()).isEqualTo("Clean Architecture")));
-        assertThat(response.pagination().page()).isEqualTo(1);
-        assertThat(response.pagination().size()).isEqualTo(20);
-        assertThat(response.pagination().itemCount()).isEqualTo(1);
-        assertThat(response.recommendations()).hasSize(1);
-        assertThat(recommendations.requestedViewerId).isEqualTo(identityProvider.viewerId().value());
     }
 
     @Test
@@ -353,7 +347,7 @@ class ContentLibrarySystemTest {
 
         Content stored = repository.ofId(new ContentId(seriesId)).orElseThrow();
         ResolvedPlayable playable = service.resolvePlayable(episodeId);
-        ContentResponse response = controller.browse("Bearer jwt", 1, 20).contents().getFirst();
+        ContentResponse response = controller.browse("Bearer jwt", 1, 20).getFirst();
 
         assertThat(stored).isInstanceOfSatisfying(Series.class, series ->
                 assertThat(series.seasons()).singleElement()
@@ -431,7 +425,7 @@ class ContentLibrarySystemTest {
                 List.of("en")
         ));
 
-        ContentResponse response = controller.browse("Bearer jwt", 1, 20).contents().getFirst();
+        ContentResponse response = controller.browse("Bearer jwt", 1, 20).getFirst();
         ResolvedPlayable playable = service.resolvePlayable(episodeId);
 
         assertThat(response.seasons()).singleElement()
@@ -478,7 +472,7 @@ class ContentLibrarySystemTest {
                 List.of("pl")
         ));
 
-        assertThat(controller.browse("Bearer jwt", 1, 20).contents()).singleElement()
+        assertThat(controller.browse("Bearer jwt", 1, 20)).singleElement()
                 .extracting(ContentResponse::type)
                 .isEqualTo(ContentType.MOVIE.name());
         assertThatThrownBy(() -> controller.addSeason("Bearer jwt", movieId, new SeasonRequest(1, "Season 1")))
@@ -530,7 +524,7 @@ class ContentLibrarySystemTest {
                 List.of()
         ));
 
-        ContentResponse response = controller.browse("Bearer jwt", 1, 20).contents().getFirst();
+        ContentResponse response = controller.browse("Bearer jwt", 1, 20).getFirst();
 
         assertThat(response.id()).isEqualTo(seriesId);
         assertThat(response.type()).isEqualTo(ContentType.SERIES.name());
@@ -589,9 +583,9 @@ class ContentLibrarySystemTest {
                 List.of("pl", "en")
         ));
 
-        ContentController.LibraryPageResponse response = controller.browse("Bearer jwt", 1, 20);
+        List<ContentResponse> response = controller.browse("Bearer jwt", 1, 20);
 
-        assertThat(response.contents()).singleElement()
+        assertThat(response).singleElement()
                 .satisfies(content -> {
                     assertThat(content.id()).isEqualTo(contentId);
                     assertThat(content.title()).isEqualTo("John Wick: Chapter 1");
@@ -662,7 +656,7 @@ class ContentLibrarySystemTest {
 
         controller.delete("Bearer jwt", contentId);
 
-        assertThat(controller.browse("Bearer jwt", 1, 20).contents()).isEmpty();
+        assertThat(controller.browse("Bearer jwt", 1, 20)).isEmpty();
         assertThat(publisher.events)
                 .anySatisfy(event -> assertThat(event)
                         .isInstanceOfSatisfying(ContentRemoved.class, removed ->
@@ -704,7 +698,7 @@ class ContentLibrarySystemTest {
 
         controller.delete("Bearer jwt", seriesId);
 
-        assertThat(controller.browse("Bearer jwt", 1, 20).contents()).isEmpty();
+        assertThat(controller.browse("Bearer jwt", 1, 20)).isEmpty();
         assertThatThrownBy(() -> service.resolvePlayable(episodeId))
                 .isInstanceOf(PlayableNotFoundException.class);
         assertThat(publisher.events)
@@ -729,6 +723,40 @@ class ContentLibrarySystemTest {
                 .isInstanceOf(ResponseStatusException.class)
                 .extracting("statusCode")
                 .isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void getMetadataEndpointReturnsExtendedMetadata() {
+        InMemoryContentRepository repository = new InMemoryContentRepository();
+        RecordingPublisher publisher = new RecordingPublisher();
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, publisher);
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.LIBRARY_ADMIN)
+        );
+
+        UUID contentId = controller.create("Bearer jwt", new ContentRequest(
+                ContentType.MOVIE,
+                "John Wick",
+                "Original description",
+                "original-thumb",
+                Genre.ACTION,
+                2014,
+                List.of("action"),
+                6060,
+                "https://www.youtube.com/watch?v=C0BMx-qxsP4",
+                List.of("pl")
+        ));
+
+        Metadata metadata = controller.getMetadata("Bearer jwt", contentId);
+
+        assertThat(metadata.title()).isEqualTo("John Wick");
+        assertThat(metadata.description()).isEqualTo("Original description");
+        assertThat(metadata.thumbnailUrl()).isEqualTo("original-thumb");
+        assertThat(metadata.genre()).isEqualTo(Genre.ACTION);
+        assertThat(metadata.releaseYear()).isEqualTo(2014);
+        assertThat(metadata.keywords()).extracting(Keyword::value).containsExactly("action");
     }
 
     static class InMemoryContentRepository implements ContentRepository {

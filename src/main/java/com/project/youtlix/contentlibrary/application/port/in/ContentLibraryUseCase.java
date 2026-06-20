@@ -62,6 +62,9 @@ public interface ContentLibraryUseCase {
     /** Updates metadata of existing content. */
     void updateMetadata(ContentId id, Metadata metadata);
 
+    /** Returns extended published metadata for a content id. */
+    Metadata extendedMetadataOf(ContentId id);
+
     /** Updates an existing movie together with its playback data. */
     void updateMovie(ContentId id, Metadata metadata, Duration duration, VideoFile videoFile);
 
