@@ -19,7 +19,6 @@ import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
 import com.project.youtlix.contentlibrary.domain.model.SeasonId;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
-import com.project.youtlix.recommendation.domain.model.RecommendedItem;
 import com.project.youtlix.common.infrastructure.in.web.OpenApiConfig;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
@@ -69,28 +68,24 @@ public class ContentController {
      * Handles PU5 browsing.
      */
     @GetMapping("/library")
-    public LibraryPageResponse browse(
+    public List<ContentResponse> browse(
             @RequestHeader("Authorization") String authorization,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
-        UserIdentity identity = currentIdentity(authorization);
+        currentIdentity(authorization);
         Page requestedPage = toPage(page, size);
-        List<ContentResponse> contents = useCase.browse(requestedPage).stream()
+        return useCase.browse(requestedPage).stream()
                 .map(ContentResponse::from)
                 .toList();
-        List<RecommendedContentResponse> recommendations = recommendationUseCase.generateFor(
-                        new com.project.youtlix.recommendation.domain.model.ViewerId(identity.viewerId().value())
-                )
-                .items()
-                .stream()
-                .map(RecommendedContentResponse::from)
-                .toList();
-        return new LibraryPageResponse(
-                contents,
-                recommendations,
-                new LibraryPaginationResponse(page, size, contents.size())
-        );
+    }
+
+    @GetMapping("/library/{id}")
+    public Metadata getMetadata(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable UUID id) {
+        currentIdentity(authorization);
+        return useCase.extendedMetadataOf(new ContentId(id));
     }
 
     /**
@@ -405,25 +400,5 @@ public class ContentController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "size must be greater than or equal to 1");
         }
         return new Page(page - 1, size);
-    }
-
-    public record LibraryPageResponse(
-            List<ContentResponse> contents,
-            List<RecommendedContentResponse> recommendations,
-            LibraryPaginationResponse pagination
-    ) {
-    }
-
-    public record LibraryPaginationResponse(
-            int page,
-            int size,
-            int itemCount
-    ) {
-    }
-
-    public record RecommendedContentResponse(UUID contentId, double score, String reason) {
-        static RecommendedContentResponse from(RecommendedItem item) {
-            return new RecommendedContentResponse(item.contentId().value(), item.score(), item.reason().name());
-        }
     }
 }

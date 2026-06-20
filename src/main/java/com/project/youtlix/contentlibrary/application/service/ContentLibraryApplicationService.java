@@ -165,6 +165,13 @@ public class ContentLibraryApplicationService implements ContentLibraryUseCase, 
     }
 
     @Override
+    public Metadata extendedMetadataOf(ContentId id) {
+        Content content = contentRepository.ofId(id)
+                .orElseThrow(() -> new IllegalArgumentException("content not found: " + id.value()));
+        return content.metadata();
+    }
+
+    @Override
     public void updateMovie(ContentId id, Metadata metadata, Duration duration, VideoFile videoFile) {
         Content content = contentRepository.ofId(id)
                 .orElseThrow(() -> new ContentNotFoundException(id.value()));
