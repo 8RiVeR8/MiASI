@@ -45,8 +45,28 @@ public interface ContentLibraryUseCase {
             VideoFile videoFile
     );
 
+    /** Updates an existing season inside a series. */
+    void updateSeason(ContentId seriesId, SeasonId seasonId, int number, String title);
+
+    /** Updates an existing episode inside a series season. */
+    void updateEpisode(
+            ContentId seriesId,
+            SeasonId seasonId,
+            EpisodeId episodeId,
+            int number,
+            String title,
+            Duration duration,
+            VideoFile videoFile
+    );
+
     /** Updates metadata of existing content. */
     void updateMetadata(ContentId id, Metadata metadata);
+
+    /** Updates an existing movie together with its playback data. */
+    void updateMovie(ContentId id, Metadata metadata, Duration duration, VideoFile videoFile);
+
+    /** Updates metadata of an existing series. */
+    void updateSeriesMetadata(ContentId id, Metadata metadata);
 
     /** Removes content from the library. */
     void remove(ContentId id);

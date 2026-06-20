@@ -1,7 +1,7 @@
 package com.project.youtlix.contentlibrary.infrastructure.in.web;
 
 /**
- * Request body for adding a season to a series.
+ * Request body for adding or updating a season.
  */
 public record SeasonRequest(int number, String title) {
 }

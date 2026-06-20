@@ -4,6 +4,8 @@ import com.project.youtlix.authentication.application.port.out.IdentityProvider;
 import com.project.youtlix.authentication.domain.model.UserIdentity;
 import com.project.youtlix.contentlibrary.application.port.in.ContentNotFoundException;
 import com.project.youtlix.contentlibrary.application.port.in.ContentLibraryUseCase;
+import com.project.youtlix.contentlibrary.application.port.in.EpisodeNotFoundException;
+import com.project.youtlix.contentlibrary.application.port.in.MovieContentExpectedException;
 import com.project.youtlix.contentlibrary.application.port.in.SeasonNotFoundException;
 import com.project.youtlix.contentlibrary.application.port.in.SeriesContentExpectedException;
 import com.project.youtlix.contentlibrary.domain.model.ContentId;
@@ -180,16 +182,68 @@ public class ContentController {
     }
 
     /**
+     * Updates an existing series season.
+     */
+    @PutMapping("/admin/content/{seriesId}/seasons/{seasonId}")
+    public void updateSeason(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable UUID seriesId,
+            @PathVariable UUID seasonId,
+            @RequestBody SeasonRequest request
+    ) {
+        requireLibraryAdmin(authorization);
+        useCase.updateSeason(new ContentId(seriesId), new SeasonId(seasonId), request.number(), request.title());
+    }
+
+    /**
+     * Updates an existing series episode.
+     */
+    @PutMapping("/admin/content/{seriesId}/seasons/{seasonId}/episodes/{episodeId}")
+    public void updateEpisode(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable UUID seriesId,
+            @PathVariable UUID seasonId,
+            @PathVariable UUID episodeId,
+            @RequestBody EpisodeRequest request
+    ) {
+        requireLibraryAdmin(authorization);
+        requireCompleteEpisodeFields(request);
+        useCase.updateEpisode(
+                new ContentId(seriesId),
+                new SeasonId(seasonId),
+                new EpisodeId(episodeId),
+                request.number(),
+                request.title(),
+                Duration.ofSeconds(request.durationSeconds()),
+                new VideoFile(request.videoUri(), request.languages())
+        );
+    }
+
+    /**
      * Handles PU9 metadata modification.
      */
     @PutMapping("/admin/content/{id}")
     public void update(
             @RequestHeader("Authorization") String authorization,
             @PathVariable UUID id,
-            @RequestBody ContentMetadataRequest request
+            @RequestBody ContentRequest request
     ) {
         requireLibraryAdmin(authorization);
-        useCase.updateMetadata(new ContentId(id), toMetadata(request));
+        if (request.type() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "type is required");
+        }
+        if (request.type() == ContentType.MOVIE) {
+            requireCompleteMovieFields(request);
+            useCase.updateMovie(
+                    new ContentId(id),
+                    toMetadata(request),
+                    Duration.ofSeconds(request.durationSeconds()),
+                    new VideoFile(request.videoUri(), request.languages())
+            );
+            return;
+        }
+        rejectMovieFieldsForSeries(request);
+        useCase.updateSeriesMetadata(new ContentId(id), toMetadata(request));
     }
 
     /**
@@ -203,17 +257,6 @@ public class ContentController {
     }
 
     private Metadata toMetadata(ContentRequest request) {
-        return toMetadata(
-                request.title(),
-                request.description(),
-                request.thumbnailUrl(),
-                request.genre(),
-                request.releaseYear(),
-                request.keywords()
-        );
-    }
-
-    private Metadata toMetadata(ContentMetadataRequest request) {
         return toMetadata(
                 request.title(),
                 request.description(),
@@ -259,8 +302,23 @@ public class ContentController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
     }
 
+    @ExceptionHandler(EpisodeNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleEpisodeNotFound(EpisodeNotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
+    }
+
     @ExceptionHandler(SeriesContentExpectedException.class)
     public ResponseEntity<Map<String, String>> handleSeriesExpected(SeriesContentExpectedException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", exception.getMessage()));
+    }
+
+    @ExceptionHandler(MovieContentExpectedException.class)
+    public ResponseEntity<Map<String, String>> handleMovieExpected(MovieContentExpectedException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", exception.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException exception) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", exception.getMessage()));
     }
 

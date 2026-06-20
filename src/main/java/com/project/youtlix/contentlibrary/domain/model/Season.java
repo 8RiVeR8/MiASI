@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Season entity inside a series aggregate.
@@ -11,8 +12,8 @@ import java.util.Objects;
 public class Season {
 
     private final SeasonId id;
-    private final int number;
-    private final String title;
+    private int number;
+    private String title;
     private final List<Episode> episodes = new ArrayList<>();
 
     /**
@@ -50,6 +51,23 @@ public class Season {
         episodes.add(episode);
     }
 
+    /**
+     * Updates season details.
+     */
+    public void updateDetails(int number, String title) {
+        validateNumber(number);
+        validateTitle(title);
+        this.number = number;
+        this.title = title;
+    }
+
+    /**
+     * Finds an episode inside this season.
+     */
+    public Optional<Episode> episodeById(EpisodeId episodeId) {
+        return episodes.stream().filter(episode -> episode.id().equals(episodeId)).findFirst();
+    }
+
     public SeasonId id() {
         return id;
     }
@@ -64,5 +82,17 @@ public class Season {
 
     public List<Episode> episodes() {
         return Collections.unmodifiableList(episodes);
+    }
+
+    private void validateNumber(int number) {
+        if (number <= 0) {
+            throw new IllegalArgumentException("season number must be positive");
+        }
+    }
+
+    private void validateTitle(String title) {
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("season title must not be blank");
+        }
     }
 }

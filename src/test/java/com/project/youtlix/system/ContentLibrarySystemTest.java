@@ -5,6 +5,7 @@ import com.project.youtlix.authentication.domain.model.Role;
 import com.project.youtlix.authentication.domain.model.UserIdentity;
 import com.project.youtlix.authentication.domain.model.ViewerId;
 import com.project.youtlix.common.application.port.out.DomainEventPublisher;
+import com.project.youtlix.contentlibrary.application.port.in.PlayableNotFoundException;
 import com.project.youtlix.contentlibrary.application.port.in.ResolvedPlayable;
 import com.project.youtlix.contentlibrary.application.port.in.SeriesContentExpectedException;
 import com.project.youtlix.contentlibrary.application.port.out.ContentRepository;
@@ -24,7 +25,6 @@ import com.project.youtlix.contentlibrary.domain.model.event.ContentAdded;
 import com.project.youtlix.contentlibrary.domain.model.event.ContentModified;
 import com.project.youtlix.contentlibrary.domain.model.event.ContentRemoved;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentController;
-import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentMetadataRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentType;
@@ -391,6 +391,72 @@ class ContentLibrarySystemTest {
     }
 
     @Test
+    void seriesSeasonAndEpisodeCanBeUpdatedSeparately() {
+        InMemoryContentRepository repository = new InMemoryContentRepository();
+        RecordingPublisher publisher = new RecordingPublisher();
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, publisher);
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.LIBRARY_ADMIN)
+        );
+        UUID seriesId = controller.create("Bearer jwt", new ContentRequest(
+                ContentType.SERIES,
+                "Breaking Bad",
+                "Crime drama series",
+                "thumb-breaking-bad",
+                Genre.DRAMA,
+                2008,
+                List.of("crime", "drama"),
+                null,
+                null,
+                List.of()
+        ));
+        UUID seasonId = controller.addSeason("Bearer jwt", seriesId, new SeasonRequest(1, "Season 1"));
+        UUID episodeId = controller.addEpisode("Bearer jwt", seriesId, seasonId, new EpisodeRequest(
+                1,
+                "Pilot",
+                3480,
+                "cdn://breaking-bad/s01e01",
+                List.of("pl", "en")
+        ));
+        publisher.events.clear();
+
+        controller.updateSeason("Bearer jwt", seriesId, seasonId, new SeasonRequest(2, "Updated Season"));
+        controller.updateEpisode("Bearer jwt", seriesId, seasonId, episodeId, new EpisodeRequest(
+                2,
+                "Updated Pilot",
+                3600,
+                "cdn://breaking-bad/updated-pilot",
+                List.of("en")
+        ));
+
+        ContentResponse response = controller.browse("Bearer jwt", 1, 20).contents().getFirst();
+        ResolvedPlayable playable = service.resolvePlayable(episodeId);
+
+        assertThat(response.seasons()).singleElement()
+                .satisfies(season -> {
+                    assertThat(season.id()).isEqualTo(seasonId);
+                    assertThat(season.number()).isEqualTo(2);
+                    assertThat(season.title()).isEqualTo("Updated Season");
+                    assertThat(season.episodes()).singleElement()
+                            .satisfies(episode -> {
+                                assertThat(episode.id()).isEqualTo(episodeId);
+                                assertThat(episode.number()).isEqualTo(2);
+                                assertThat(episode.title()).isEqualTo("Updated Pilot");
+                                assertThat(episode.durationSeconds()).isEqualTo(3600);
+                                assertThat(episode.videoUri()).isEqualTo("cdn://breaking-bad/updated-pilot");
+                                assertThat(episode.languages()).containsExactly("en");
+                            });
+                });
+        assertThat(playable.videoFile().uri()).isEqualTo("cdn://breaking-bad/updated-pilot");
+        assertThat(publisher.events)
+                .anySatisfy(event -> assertThat(event)
+                        .isInstanceOfSatisfying(ContentModified.class, modified ->
+                                assertThat(modified.contentId().value()).isEqualTo(seriesId)));
+    }
+
+    @Test
     void seasonCannotBeAddedToMovieContent() {
         InMemoryContentRepository repository = new InMemoryContentRepository();
         ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, new NoOpPublisher());
@@ -420,6 +486,73 @@ class ContentLibrarySystemTest {
     }
 
     @Test
+    void seriesMetadataUpdatePreservesSeasonsAndEpisodes() {
+        InMemoryContentRepository repository = new InMemoryContentRepository();
+        RecordingPublisher publisher = new RecordingPublisher();
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, publisher);
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.LIBRARY_ADMIN)
+        );
+        UUID seriesId = controller.create("Bearer jwt", new ContentRequest(
+                ContentType.SERIES,
+                "Breaking Bad",
+                "Crime drama series",
+                "thumb-breaking-bad",
+                Genre.DRAMA,
+                2008,
+                List.of("crime", "drama"),
+                null,
+                null,
+                List.of()
+        ));
+        UUID seasonId = controller.addSeason("Bearer jwt", seriesId, new SeasonRequest(1, "Season 1"));
+        UUID episodeId = controller.addEpisode("Bearer jwt", seriesId, seasonId, new EpisodeRequest(
+                1,
+                "Pilot",
+                3480,
+                "cdn://breaking-bad/s01e01",
+                List.of("pl", "en")
+        ));
+        publisher.events.clear();
+
+        controller.update("Bearer jwt", seriesId, new ContentRequest(
+                ContentType.SERIES,
+                "Breaking Bad: Updated",
+                "Updated crime drama series",
+                "thumb-breaking-bad-updated",
+                Genre.DRAMA,
+                2008,
+                List.of("crime", "meth", "drama"),
+                null,
+                null,
+                List.of()
+        ));
+
+        ContentResponse response = controller.browse("Bearer jwt", 1, 20).contents().getFirst();
+
+        assertThat(response.id()).isEqualTo(seriesId);
+        assertThat(response.type()).isEqualTo(ContentType.SERIES.name());
+        assertThat(response.title()).isEqualTo("Breaking Bad: Updated");
+        assertThat(response.description()).isEqualTo("Updated crime drama series");
+        assertThat(response.thumbnailUrl()).isEqualTo("thumb-breaking-bad-updated");
+        assertThat(response.seasons()).singleElement()
+                .satisfies(season -> {
+                    assertThat(season.id()).isEqualTo(seasonId);
+                    assertThat(season.episodes()).singleElement()
+                            .satisfies(episode -> {
+                                assertThat(episode.id()).isEqualTo(episodeId);
+                                assertThat(episode.videoUri()).isEqualTo("cdn://breaking-bad/s01e01");
+                            });
+                });
+        assertThat(publisher.events)
+                .anySatisfy(event -> assertThat(event)
+                        .isInstanceOfSatisfying(ContentModified.class, modified ->
+                                assertThat(modified.contentId().value()).isEqualTo(seriesId)));
+    }
+
+    @Test
     void contentMetadataUpdatePathRunsFromWebAdapterThroughUseCaseAndPublishesEvent() {
         InMemoryContentRepository repository = new InMemoryContentRepository();
         RecordingPublisher publisher = new RecordingPublisher();
@@ -443,13 +576,17 @@ class ContentLibrarySystemTest {
         ));
         publisher.events.clear();
 
-        controller.update("Bearer jwt", contentId, new ContentMetadataRequest(
+        controller.update("Bearer jwt", contentId, new ContentRequest(
+                ContentType.MOVIE,
                 "John Wick: Chapter 1",
                 "Updated description",
                 "updated-thumb",
                 Genre.ACTION,
                 2014,
-                List.of("action", "revenge")
+                List.of("action", "revenge"),
+                6100,
+                "https://www.youtube.com/watch?v=updated-john-wick",
+                List.of("pl", "en")
         ));
 
         ContentController.LibraryPageResponse response = controller.browse("Bearer jwt", 1, 20);
@@ -460,6 +597,9 @@ class ContentLibrarySystemTest {
                     assertThat(content.title()).isEqualTo("John Wick: Chapter 1");
                     assertThat(content.description()).isEqualTo("Updated description");
                     assertThat(content.thumbnailUrl()).isEqualTo("updated-thumb");
+                    assertThat(content.durationSeconds()).isEqualTo(6100);
+                    assertThat(content.videoUri()).isEqualTo("https://www.youtube.com/watch?v=updated-john-wick");
+                    assertThat(content.languages()).containsExactly("pl", "en");
                 });
         assertThat(publisher.events)
                 .anySatisfy(event -> assertThat(event)
@@ -479,13 +619,17 @@ class ContentLibrarySystemTest {
                 new FixedIdentityProvider(Role.VIEWER)
         );
 
-        assertThatThrownBy(() -> controller.update("Bearer jwt", UUID.randomUUID(), new ContentMetadataRequest(
+        assertThatThrownBy(() -> controller.update("Bearer jwt", UUID.randomUUID(), new ContentRequest(
+                ContentType.MOVIE,
                 "John Wick",
                 "Description",
                 "thumb",
                 Genre.ACTION,
                 2014,
-                List.of("action")
+                List.of("action"),
+                6060,
+                "https://www.youtube.com/watch?v=C0BMx-qxsP4",
+                List.of("pl")
         )))
                 .isInstanceOf(ResponseStatusException.class)
                 .extracting("statusCode")
@@ -523,6 +667,50 @@ class ContentLibrarySystemTest {
                 .anySatisfy(event -> assertThat(event)
                         .isInstanceOfSatisfying(ContentRemoved.class, removed ->
                                 assertThat(removed.contentId().value()).isEqualTo(contentId)));
+    }
+
+    @Test
+    void seriesRemovalRemovesItsSeasonsAndEpisodesFromCatalog() {
+        InMemoryContentRepository repository = new InMemoryContentRepository();
+        RecordingPublisher publisher = new RecordingPublisher();
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, publisher);
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.LIBRARY_ADMIN)
+        );
+        UUID seriesId = controller.create("Bearer jwt", new ContentRequest(
+                ContentType.SERIES,
+                "Breaking Bad",
+                "Crime drama series",
+                "thumb-breaking-bad",
+                Genre.DRAMA,
+                2008,
+                List.of("crime", "drama"),
+                null,
+                null,
+                List.of()
+        ));
+        UUID seasonId = controller.addSeason("Bearer jwt", seriesId, new SeasonRequest(1, "Season 1"));
+        UUID episodeId = controller.addEpisode("Bearer jwt", seriesId, seasonId, new EpisodeRequest(
+                1,
+                "Pilot",
+                3480,
+                "cdn://breaking-bad/s01e01",
+                List.of("pl", "en")
+        ));
+        assertThat(service.resolvePlayable(episodeId).kind()).isEqualTo(ResolvedPlayable.PlayableKind.EPISODE);
+        publisher.events.clear();
+
+        controller.delete("Bearer jwt", seriesId);
+
+        assertThat(controller.browse("Bearer jwt", 1, 20).contents()).isEmpty();
+        assertThatThrownBy(() -> service.resolvePlayable(episodeId))
+                .isInstanceOf(PlayableNotFoundException.class);
+        assertThat(publisher.events)
+                .anySatisfy(event -> assertThat(event)
+                        .isInstanceOfSatisfying(ContentRemoved.class, removed ->
+                                assertThat(removed.contentId().value()).isEqualTo(seriesId)));
     }
 
     @Test

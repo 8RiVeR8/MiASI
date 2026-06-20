@@ -5,6 +5,8 @@ import com.project.youtlix.contentlibrary.application.port.in.ContentCatalogApi;
 import com.project.youtlix.contentlibrary.application.port.in.ContentLibraryUseCase;
 import com.project.youtlix.contentlibrary.application.port.in.ContentMetadata;
 import com.project.youtlix.contentlibrary.application.port.in.ContentNotFoundException;
+import com.project.youtlix.contentlibrary.application.port.in.EpisodeNotFoundException;
+import com.project.youtlix.contentlibrary.application.port.in.MovieContentExpectedException;
 import com.project.youtlix.contentlibrary.application.port.in.PlayableNotFoundException;
 import com.project.youtlix.contentlibrary.application.port.in.ResolvedPlayable;
 import com.project.youtlix.contentlibrary.application.port.in.SeasonNotFoundException;
@@ -124,12 +126,64 @@ public class ContentLibraryApplicationService implements ContentLibraryUseCase, 
     }
 
     @Override
+    public void updateSeason(ContentId seriesId, SeasonId seasonId, int number, String title) {
+        Series series = seriesOf(seriesId);
+        series.seasonById(seasonId)
+                .orElseThrow(() -> new SeasonNotFoundException(seasonId.value()));
+        series.updateSeason(seasonId, number, title);
+        contentRepository.save(series);
+        eventPublisher.publishAll(series.occurredEvents());
+    }
+
+    @Override
+    public void updateEpisode(
+            ContentId seriesId,
+            SeasonId seasonId,
+            EpisodeId episodeId,
+            int number,
+            String title,
+            Duration duration,
+            VideoFile videoFile
+    ) {
+        Series series = seriesOf(seriesId);
+        Season season = series.seasonById(seasonId)
+                .orElseThrow(() -> new SeasonNotFoundException(seasonId.value()));
+        season.episodeById(episodeId)
+                .orElseThrow(() -> new EpisodeNotFoundException(episodeId.value()));
+        series.updateEpisode(seasonId, episodeId, number, title, duration, videoFile);
+        contentRepository.save(series);
+        eventPublisher.publishAll(series.occurredEvents());
+    }
+
+    @Override
     public void updateMetadata(ContentId id, Metadata metadata) {
         Content content = contentRepository.ofId(id)
                 .orElseThrow(() -> new ContentNotFoundException(id.value()));
         content.updateMetadata(metadata);
         contentRepository.save(content);
         eventPublisher.publishAll(content.occurredEvents());
+    }
+
+    @Override
+    public void updateMovie(ContentId id, Metadata metadata, Duration duration, VideoFile videoFile) {
+        Content content = contentRepository.ofId(id)
+                .orElseThrow(() -> new ContentNotFoundException(id.value()));
+        if (content instanceof Movie movie) {
+            movie.updateMetadata(metadata);
+            movie.updatePlayback(duration, videoFile);
+            contentRepository.save(movie);
+            eventPublisher.publishAll(movie.occurredEvents());
+            return;
+        }
+        throw new MovieContentExpectedException(id.value());
+    }
+
+    @Override
+    public void updateSeriesMetadata(ContentId id, Metadata metadata) {
+        Series series = seriesOf(id);
+        series.updateMetadata(metadata);
+        contentRepository.save(series);
+        eventPublisher.publishAll(series.occurredEvents());
     }
 
     @Override
