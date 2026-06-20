@@ -1,5 +1,6 @@
 package com.project.youtlix.recommendation.application.port.out;
 
+import com.project.youtlix.recommendation.domain.model.ContentId;
 import com.project.youtlix.recommendation.domain.model.ViewerId;
 import com.project.youtlix.recommendation.domain.model.Watchlist;
 
@@ -15,4 +16,7 @@ public interface WatchlistRepository {
 
     /** Loads watchlist by viewer. */
     Optional<Watchlist> ofViewer(ViewerId viewerId);
+
+    /** Removes content from all persisted watchlists. */
+    void removeFromWatchlists(ContentId contentId);
 }

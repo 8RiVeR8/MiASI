@@ -21,4 +21,7 @@ public interface RecommendationUseCase {
 
     /** Removes content from viewer watchlist. */
     void removeFromWatchlist(ViewerId viewerId, ContentId contentId);
+
+    /** Removes deleted content from every watchlist. */
+    void removeFromWatchlists(ContentId contentId);
 }

@@ -7,8 +7,8 @@ import java.util.Objects;
  */
 public class Movie extends Content {
 
-    private final Duration duration;
-    private final VideoFile videoFile;
+    private Duration duration;
+    private VideoFile videoFile;
 
     /**
      * Creates a movie aggregate.
@@ -41,5 +41,13 @@ public class Movie extends Content {
 
     public VideoFile videoFile() {
         return videoFile;
+    }
+
+    /**
+     * Updates technical playback data for this movie.
+     */
+    public void updatePlayback(Duration duration, VideoFile videoFile) {
+        this.duration = Objects.requireNonNull(duration, "duration must not be null");
+        this.videoFile = Objects.requireNonNull(videoFile, "videoFile must not be null");
     }
 }

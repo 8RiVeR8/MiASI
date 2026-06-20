@@ -67,6 +67,14 @@ public class SupabaseWatchlistRepository implements WatchlistRepository {
         );
     }
 
+    @Override
+    public void removeFromWatchlists(ContentId contentId) {
+        jdbcTemplate.update(
+                "delete from recommendation.watchlist_items where content_id = ?",
+                contentId.value()
+        );
+    }
+
     private Watchlist toDomain(ResultSet row) throws SQLException {
         UUID watchlistId = row.getObject("id", UUID.class);
         List<WatchlistItem> items = jdbcTemplate.query(

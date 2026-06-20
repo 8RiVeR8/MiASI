@@ -4,17 +4,26 @@ import com.project.youtlix.common.application.port.out.DomainEventPublisher;
 import com.project.youtlix.contentlibrary.application.port.in.ContentCatalogApi;
 import com.project.youtlix.contentlibrary.application.port.in.ContentLibraryUseCase;
 import com.project.youtlix.contentlibrary.application.port.in.ContentMetadata;
+import com.project.youtlix.contentlibrary.application.port.in.ContentNotFoundException;
+import com.project.youtlix.contentlibrary.application.port.in.EpisodeNotFoundException;
+import com.project.youtlix.contentlibrary.application.port.in.MovieContentExpectedException;
 import com.project.youtlix.contentlibrary.application.port.in.PlayableNotFoundException;
 import com.project.youtlix.contentlibrary.application.port.in.ResolvedPlayable;
+import com.project.youtlix.contentlibrary.application.port.in.SeasonNotFoundException;
 import com.project.youtlix.contentlibrary.application.port.in.SeriesNotPlayableException;
+import com.project.youtlix.contentlibrary.application.port.in.SeriesContentExpectedException;
 import com.project.youtlix.contentlibrary.application.port.out.ContentRepository;
 import com.project.youtlix.contentlibrary.domain.model.Content;
 import com.project.youtlix.contentlibrary.domain.model.ContentId;
 import com.project.youtlix.contentlibrary.domain.model.Duration;
+import com.project.youtlix.contentlibrary.domain.model.Episode;
+import com.project.youtlix.contentlibrary.domain.model.EpisodeId;
 import com.project.youtlix.contentlibrary.domain.model.Metadata;
 import com.project.youtlix.contentlibrary.domain.model.Movie;
 import com.project.youtlix.contentlibrary.domain.model.Page;
 import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
+import com.project.youtlix.contentlibrary.domain.model.Season;
+import com.project.youtlix.contentlibrary.domain.model.SeasonId;
 import com.project.youtlix.contentlibrary.domain.model.Series;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.contentlibrary.domain.service.ContentFactory;
@@ -90,21 +99,100 @@ public class ContentLibraryApplicationService implements ContentLibraryUseCase, 
     }
 
     @Override
+    public SeasonId addSeason(ContentId seriesId, int number, String title) {
+        Series series = seriesOf(seriesId);
+        Season season = new Season(number, title);
+        series.addSeason(season);
+        contentRepository.save(series);
+        return season.id();
+    }
+
+    @Override
+    public EpisodeId addEpisode(
+            ContentId seriesId,
+            SeasonId seasonId,
+            int number,
+            String title,
+            Duration duration,
+            VideoFile videoFile
+    ) {
+        Series series = seriesOf(seriesId);
+        Season season = series.seasonById(seasonId)
+                .orElseThrow(() -> new SeasonNotFoundException(seasonId.value()));
+        Episode episode = new Episode(EpisodeId.newId(), number, title, duration, videoFile);
+        season.addEpisode(episode);
+        contentRepository.save(series);
+        return episode.id();
+    }
+
+    @Override
+    public void updateSeason(ContentId seriesId, SeasonId seasonId, int number, String title) {
+        Series series = seriesOf(seriesId);
+        series.seasonById(seasonId)
+                .orElseThrow(() -> new SeasonNotFoundException(seasonId.value()));
+        series.updateSeason(seasonId, number, title);
+        contentRepository.save(series);
+        eventPublisher.publishAll(series.occurredEvents());
+    }
+
+    @Override
+    public void updateEpisode(
+            ContentId seriesId,
+            SeasonId seasonId,
+            EpisodeId episodeId,
+            int number,
+            String title,
+            Duration duration,
+            VideoFile videoFile
+    ) {
+        Series series = seriesOf(seriesId);
+        Season season = series.seasonById(seasonId)
+                .orElseThrow(() -> new SeasonNotFoundException(seasonId.value()));
+        season.episodeById(episodeId)
+                .orElseThrow(() -> new EpisodeNotFoundException(episodeId.value()));
+        series.updateEpisode(seasonId, episodeId, number, title, duration, videoFile);
+        contentRepository.save(series);
+        eventPublisher.publishAll(series.occurredEvents());
+    }
+
+    @Override
     public void updateMetadata(ContentId id, Metadata metadata) {
         Content content = contentRepository.ofId(id)
-                .orElseThrow(() -> new IllegalArgumentException("content not found: " + id.value()));
+                .orElseThrow(() -> new ContentNotFoundException(id.value()));
         content.updateMetadata(metadata);
         contentRepository.save(content);
         eventPublisher.publishAll(content.occurredEvents());
     }
 
     @Override
+    public void updateMovie(ContentId id, Metadata metadata, Duration duration, VideoFile videoFile) {
+        Content content = contentRepository.ofId(id)
+                .orElseThrow(() -> new ContentNotFoundException(id.value()));
+        if (content instanceof Movie movie) {
+            movie.updateMetadata(metadata);
+            movie.updatePlayback(duration, videoFile);
+            contentRepository.save(movie);
+            eventPublisher.publishAll(movie.occurredEvents());
+            return;
+        }
+        throw new MovieContentExpectedException(id.value());
+    }
+
+    @Override
+    public void updateSeriesMetadata(ContentId id, Metadata metadata) {
+        Series series = seriesOf(id);
+        series.updateMetadata(metadata);
+        contentRepository.save(series);
+        eventPublisher.publishAll(series.occurredEvents());
+    }
+
+    @Override
     public void remove(ContentId id) {
-        contentRepository.ofId(id).ifPresent(content -> {
-            content.withdraw();
-            eventPublisher.publishAll(content.occurredEvents());
-        });
+        Content content = contentRepository.ofId(id)
+                .orElseThrow(() -> new ContentNotFoundException(id.value()));
+        content.withdraw();
         contentRepository.remove(id);
+        eventPublisher.publishAll(content.occurredEvents());
     }
 
     @Override
@@ -135,5 +223,14 @@ public class ContentLibraryApplicationService implements ContentLibraryUseCase, 
                     }
                     throw new PlayableNotFoundException(id);
                 });
+    }
+
+    private Series seriesOf(ContentId id) {
+        Content content = contentRepository.ofId(id)
+                .orElseThrow(() -> new ContentNotFoundException(id.value()));
+        if (content instanceof Series series) {
+            return series;
+        }
+        throw new SeriesContentExpectedException(id.value());
     }
 }

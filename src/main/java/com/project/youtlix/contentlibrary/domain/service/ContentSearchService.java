@@ -5,6 +5,7 @@ import com.project.youtlix.contentlibrary.domain.model.Keyword;
 import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Domain search rules used by application services after data is loaded by ports.
@@ -24,7 +25,7 @@ public class ContentSearchService {
     public List<Content> searchByKeyword(List<Content> candidates, String phrase) {
         return candidates.stream()
                 .filter(Content::available)
-                .filter(content -> phraseMatches(content, phrase))
+                .filter(content -> titleOrKeywordContains(content, phrase))
                 .toList();
     }
 
@@ -41,16 +42,20 @@ public class ContentSearchService {
                 .filter(content -> criteria.genre() == null || content.metadata().genre() == criteria.genre())
                 .filter(content -> criteria.yearFrom() == null || content.metadata().releaseYear() >= criteria.yearFrom())
                 .filter(content -> criteria.yearTo() == null || content.metadata().releaseYear() <= criteria.yearTo())
-                .filter(content -> phraseMatches(content, criteria.phrase()))
+                .filter(content -> titleOrKeywordContains(content, criteria.phrase()))
                 .toList();
     }
 
-    private boolean phraseMatches(Content content, String phrase) {
+    private boolean titleOrKeywordContains(Content content, String phrase) {
         if (phrase == null || phrase.isBlank()) {
             return true;
         }
-        String normalized = phrase.trim().toLowerCase();
-        return content.metadata().title().toLowerCase().contains(normalized)
-                || content.metadata().keywords().stream().map(Keyword::value).anyMatch(value -> value.contains(normalized));
+        String normalized = phrase.trim().toLowerCase(Locale.ROOT);
+        return content.metadata().title().toLowerCase(Locale.ROOT).contains(normalized)
+                || content.metadata().keywords().stream()
+                .map(Keyword::value)
+                .map(value -> value.toLowerCase(Locale.ROOT))
+                .anyMatch(value -> value.contains(normalized));
     }
+
 }

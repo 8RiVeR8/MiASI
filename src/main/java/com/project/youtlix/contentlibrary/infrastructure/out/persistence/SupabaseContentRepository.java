@@ -14,6 +14,7 @@ import com.project.youtlix.contentlibrary.domain.model.Movie;
 import com.project.youtlix.contentlibrary.domain.model.Page;
 import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
 import com.project.youtlix.contentlibrary.domain.model.Season;
+import com.project.youtlix.contentlibrary.domain.model.SeasonId;
 import com.project.youtlix.contentlibrary.domain.model.Series;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -287,15 +288,14 @@ public class SupabaseContentRepository implements ContentRepository {
     }
 
     private void saveSeason(ContentId seriesId, Season season) {
-        UUID seasonId = UUID.randomUUID();
         jdbcTemplate.update(
                 "insert into library.seasons(id, series_id, season_number, title) values (?, ?, ?, ?)",
-                seasonId,
+                season.id().value(),
                 seriesId.value(),
                 season.number(),
                 season.title()
         );
-        season.episodes().forEach(episode -> saveEpisode(seasonId, episode));
+        season.episodes().forEach(episode -> saveEpisode(season.id().value(), episode));
     }
 
     private void saveEpisode(UUID seasonId, Episode episode) {
@@ -336,7 +336,7 @@ public class SupabaseContentRepository implements ContentRepository {
     }
 
     private Season toSeason(SeasonRow row) {
-        Season season = new Season(row.number(), row.title());
+        Season season = new Season(new SeasonId(row.id()), row.number(), row.title());
         episodes(row.id()).forEach(season::addEpisode);
         return season;
     }

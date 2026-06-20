@@ -32,9 +32,10 @@ class RecommendationUseCaseTest {
     @Test
     void recommendationSwitchesToPersonalizedAfterRating() {
         InMemoryRatingRepository ratingRepository = new InMemoryRatingRepository();
+        InMemoryWatchlistRepository watchlistRepository = new InMemoryWatchlistRepository();
         RecommendationApplicationService service = new RecommendationApplicationService(
                 ratingRepository,
-                new InMemoryWatchlistRepository(),
+                watchlistRepository,
                 new FakeContentCatalogPort(),
                 viewerId -> List.of(),
                 new RecordingPublisher()
@@ -49,6 +50,38 @@ class RecommendationUseCaseTest {
         assertThat(beforeRating.items()).allMatch(item -> item.reason() == RecommendationReason.GLOBAL_POPULARITY);
         assertThat(afterRating.items()).allMatch(item -> item.reason() == RecommendationReason.PERSONALIZED);
         assertThat(ratingRepository.ofViewer(viewerId)).hasSize(1);
+    }
+
+    @Test
+    void contentRemovalRemovesContentFromEveryWatchlist() {
+        InMemoryWatchlistRepository watchlistRepository = new InMemoryWatchlistRepository();
+        RecommendationApplicationService service = new RecommendationApplicationService(
+                new InMemoryRatingRepository(),
+                watchlistRepository,
+                new FakeContentCatalogPort(),
+                viewerId -> List.of(),
+                new RecordingPublisher()
+        );
+        ContentId removedContentId = ContentId.newId();
+        ContentId remainingContentId = ContentId.newId();
+        ViewerId firstViewer = new ViewerId(UUID.randomUUID());
+        ViewerId secondViewer = new ViewerId(UUID.randomUUID());
+        service.addToWatchlist(firstViewer, removedContentId);
+        service.addToWatchlist(firstViewer, remainingContentId);
+        service.addToWatchlist(secondViewer, removedContentId);
+
+        service.removeFromWatchlists(removedContentId);
+
+        assertThat(watchlistRepository.ofViewer(firstViewer)).get()
+                .extracting(Watchlist::items)
+                .asList()
+                .singleElement()
+                .extracting("contentId")
+                .isEqualTo(remainingContentId);
+        assertThat(watchlistRepository.ofViewer(secondViewer)).get()
+                .extracting(Watchlist::items)
+                .asList()
+                .isEmpty();
     }
 
     static class InMemoryRatingRepository implements RatingRepository {
@@ -85,6 +118,11 @@ class RecommendationUseCaseTest {
         @Override
         public Optional<Watchlist> ofViewer(ViewerId viewerId) {
             return Optional.ofNullable(watchlists.get(viewerId));
+        }
+
+        @Override
+        public void removeFromWatchlists(ContentId contentId) {
+            watchlists.values().forEach(watchlist -> watchlist.remove(contentId));
         }
     }
 

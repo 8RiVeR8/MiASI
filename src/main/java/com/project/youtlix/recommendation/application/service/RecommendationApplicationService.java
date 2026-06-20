@@ -158,6 +158,11 @@ public class RecommendationApplicationService implements RecommendationUseCase {
         watchlistRepository.save(watchlist);
     }
 
+    @Override
+    public void removeFromWatchlists(ContentId contentId) {
+        watchlistRepository.removeFromWatchlists(contentId);
+    }
+
     private void scoreGenre(Map<Genre, Integer> genreScore, ContentId contentId, int score) {
         Genre genre = contentCatalogPort.metadataOf(contentId).genre();
         genreScore.merge(genre, score, Integer::sum);
