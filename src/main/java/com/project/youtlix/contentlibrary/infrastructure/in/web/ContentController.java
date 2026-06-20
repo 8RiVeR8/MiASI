@@ -8,16 +8,7 @@ import com.project.youtlix.contentlibrary.application.port.in.EpisodeNotFoundExc
 import com.project.youtlix.contentlibrary.application.port.in.MovieContentExpectedException;
 import com.project.youtlix.contentlibrary.application.port.in.SeasonNotFoundException;
 import com.project.youtlix.contentlibrary.application.port.in.SeriesContentExpectedException;
-import com.project.youtlix.contentlibrary.domain.model.ContentId;
-import com.project.youtlix.contentlibrary.domain.model.Duration;
-import com.project.youtlix.contentlibrary.domain.model.EpisodeId;
-import com.project.youtlix.contentlibrary.domain.model.Genre;
-import com.project.youtlix.contentlibrary.domain.model.Keyword;
-import com.project.youtlix.contentlibrary.domain.model.Metadata;
-import com.project.youtlix.contentlibrary.domain.model.Page;
-import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
-import com.project.youtlix.contentlibrary.domain.model.SeasonId;
-import com.project.youtlix.contentlibrary.domain.model.VideoFile;
+import com.project.youtlix.contentlibrary.domain.model.*;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
 import com.project.youtlix.common.infrastructure.in.web.OpenApiConfig;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -256,6 +247,7 @@ public class ContentController {
                 request.title(),
                 request.description(),
                 request.thumbnailUrl(),
+                request.type(),
                 request.genre(),
                 request.releaseYear(),
                 request.keywords()
@@ -266,6 +258,7 @@ public class ContentController {
             String title,
             String description,
             String thumbnailUrl,
+            ContentType contentType,
             Genre genre,
             int releaseYear,
             List<String> rawKeywords
@@ -277,6 +270,7 @@ public class ContentController {
             return new Metadata(
                     title,
                     description,
+                    contentType,
                     thumbnailUrl,
                     genre,
                     releaseYear,

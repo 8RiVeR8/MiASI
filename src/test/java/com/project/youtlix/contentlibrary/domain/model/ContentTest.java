@@ -33,6 +33,6 @@ class ContentTest {
     }
 
     private Metadata metadata(String title) {
-        return new Metadata(title, "Description", "thumb", Genre.ACTION, 2025, List.of(new Keyword("hero")));
+        return new Metadata(title, "Description", ContentType.MOVIE, "thumb", Genre.ACTION, 2025, List.of(new Keyword("hero")));
     }
 }

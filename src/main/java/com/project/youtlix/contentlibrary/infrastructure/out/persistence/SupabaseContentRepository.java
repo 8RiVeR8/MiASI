@@ -17,6 +17,7 @@ import com.project.youtlix.contentlibrary.domain.model.Season;
 import com.project.youtlix.contentlibrary.domain.model.SeasonId;
 import com.project.youtlix.contentlibrary.domain.model.Series;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
+import com.project.youtlix.contentlibrary.domain.model.ContentType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -171,7 +172,7 @@ public class SupabaseContentRepository implements ContentRepository {
     private ContentRow toContentRow(ResultSet row) throws SQLException {
         return new ContentRow(
                 row.getObject("id", UUID.class),
-                row.getString("content_type"),
+                ContentType.valueOf(row.getString("content_type")),
                 row.getString("title"),
                 row.getString("description"),
                 row.getString("thumbnail_url"),
@@ -186,6 +187,7 @@ public class SupabaseContentRepository implements ContentRepository {
         Metadata metadata = new Metadata(
                 row.title(),
                 row.description(),
+                row.contentType(),
                 row.thumbnailUrl(),
                 row.genre(),
                 row.releaseYear(),
@@ -392,7 +394,7 @@ public class SupabaseContentRepository implements ContentRepository {
 
     private record ContentRow(
             UUID id,
-            String contentType,
+            ContentType contentType,
             String title,
             String description,
             String thumbnailUrl,

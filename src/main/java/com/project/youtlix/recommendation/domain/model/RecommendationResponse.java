@@ -1,5 +1,7 @@
 package com.project.youtlix.recommendation.domain.model;
 
+import com.project.youtlix.contentlibrary.domain.model.ContentType;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -12,6 +14,7 @@ public record RecommendationResponse(
         String type,
         String title,
         String description,
+        ContentType contentType,
         String thumbnailUrl,
         String genre,
         int releaseYear,

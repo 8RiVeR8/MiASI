@@ -8,6 +8,7 @@ import java.util.Objects;
  *
  * @param title content title
  * @param description content description
+ * @param contentType content type
  * @param thumbnailUrl thumbnail URL
  * @param genre content genre
  * @param releaseYear release year
@@ -16,6 +17,7 @@ import java.util.Objects;
 public record Metadata(
         String title,
         String description,
+        ContentType contentType,
         String thumbnailUrl,
         Genre genre,
         int releaseYear,

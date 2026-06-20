@@ -27,7 +27,7 @@ import com.project.youtlix.contentlibrary.domain.model.event.ContentRemoved;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentController;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
-import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentType;
+import com.project.youtlix.contentlibrary.domain.model.ContentType;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.EpisodeRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.SeasonRequest;
 import com.project.youtlix.recommendation.domain.model.RecommendationResponse;
@@ -108,6 +108,7 @@ class ContentLibrarySystemTest {
         service.createMovie(new Metadata(
                 "Clean Architecture",
                 "Hexagonal architecture documentary",
+                ContentType.MOVIE,
                 "thumb-clean",
                 Genre.DOCUMENTARY,
                 2026,
@@ -116,6 +117,7 @@ class ContentLibrarySystemTest {
         service.createMovie(new Metadata(
                 "Comedy Night",
                 "Stand-up special",
+                ContentType.MOVIE,
                 "thumb-comedy",
                 Genre.COMEDY,
                 2024,
@@ -161,6 +163,7 @@ class ContentLibrarySystemTest {
         service.createMovie(new Metadata(
                 "Clean Architecture",
                 "Hexagonal architecture documentary",
+                ContentType.MOVIE,
                 "thumb-clean",
                 Genre.DOCUMENTARY,
                 2026,
@@ -169,6 +172,7 @@ class ContentLibrarySystemTest {
         service.createMovie(new Metadata(
                 "Comedy Night",
                 "Stand-up special",
+                ContentType.MOVIE,
                 "thumb-comedy",
                 Genre.COMEDY,
                 2024,
@@ -177,6 +181,7 @@ class ContentLibrarySystemTest {
         service.createMovie(new Metadata(
                 "Old Documentary",
                 "Older documentary",
+                ContentType.MOVIE,
                 "thumb-old",
                 Genre.DOCUMENTARY,
                 2020,
@@ -185,6 +190,7 @@ class ContentLibrarySystemTest {
         service.createMovie(new Metadata(
                 "Architecture Clean",
                 "Same words but title does not start with filter phrase",
+                ContentType.MOVIE,
                 "thumb-architecture-clean",
                 Genre.DOCUMENTARY,
                 2026,
@@ -218,6 +224,7 @@ class ContentLibrarySystemTest {
         service.createMovie(new Metadata(
                 "Clean Code",
                 "Engineering documentary",
+                ContentType.MOVIE,
                 "thumb-clean-code",
                 Genre.DOCUMENTARY,
                 2026,
@@ -226,6 +233,7 @@ class ContentLibrarySystemTest {
         service.createMovie(new Metadata(
                 "Clean Comedy",
                 "Comedy special",
+                ContentType.MOVIE,
                 "thumb-clean-comedy",
                 Genre.COMEDY,
                 2026,

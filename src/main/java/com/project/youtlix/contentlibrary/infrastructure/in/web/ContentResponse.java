@@ -1,11 +1,6 @@
 package com.project.youtlix.contentlibrary.infrastructure.in.web;
 
-import com.project.youtlix.contentlibrary.domain.model.Content;
-import com.project.youtlix.contentlibrary.domain.model.Episode;
-import com.project.youtlix.contentlibrary.domain.model.Metadata;
-import com.project.youtlix.contentlibrary.domain.model.Movie;
-import com.project.youtlix.contentlibrary.domain.model.Season;
-import com.project.youtlix.contentlibrary.domain.model.Series;
+import com.project.youtlix.contentlibrary.domain.model.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +13,7 @@ public record ContentResponse(
         String type,
         String title,
         String description,
+        ContentType contentType,
         String thumbnailUrl,
         String genre,
         int releaseYear,
@@ -39,6 +35,7 @@ public record ContentResponse(
                     "MOVIE",
                     metadata.title(),
                     metadata.description(),
+                    metadata.contentType(),
                     metadata.thumbnailUrl(),
                     metadata.genre().name(),
                     metadata.releaseYear(),
@@ -55,6 +52,7 @@ public record ContentResponse(
                 "SERIES",
                 metadata.title(),
                 metadata.description(),
+                metadata.contentType(),
                 metadata.thumbnailUrl(),
                 metadata.genre().name(),
                 metadata.releaseYear(),

@@ -1,5 +1,6 @@
 package com.project.youtlix.contentlibrary.infrastructure.in.web;
 
+import com.project.youtlix.contentlibrary.domain.model.ContentType;
 import com.project.youtlix.contentlibrary.domain.model.Genre;
 
 import java.util.List;

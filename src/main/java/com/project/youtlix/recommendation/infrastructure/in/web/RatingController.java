@@ -56,6 +56,7 @@ public class RatingController {
                 response.type(),
                 response.title(),
                 response.description(),
+                response.contentType(),
                 response.thumbnailUrl(),
                 response.genre(),
                 response.releaseYear(),

@@ -16,6 +16,7 @@ import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
 import com.project.youtlix.contentlibrary.domain.model.Series;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.contentlibrary.domain.service.ContentSearchService;
+import com.project.youtlix.contentlibrary.domain.model.ContentType;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ class ContentLibraryUseCaseTest {
         Metadata metadata = new Metadata(
                 "DDD Movie",
                 "Architecture",
+                ContentType.MOVIE,
                 "thumb",
                 Genre.DOCUMENTARY,
                 2026,
