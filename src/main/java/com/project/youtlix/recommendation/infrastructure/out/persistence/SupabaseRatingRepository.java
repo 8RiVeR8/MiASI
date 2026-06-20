@@ -42,7 +42,7 @@ public class SupabaseRatingRepository implements RatingRepository {
                 rating.viewerId().value(),
                 rating.contentId().value(),
                 (short) rating.stars().value(),
-                rating.ratedAt()
+                java.sql.Timestamp.from(rating.ratedAt())
         );
     }
 
