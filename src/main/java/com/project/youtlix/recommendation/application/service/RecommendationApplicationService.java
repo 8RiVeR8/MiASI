@@ -1,7 +1,9 @@
 package com.project.youtlix.recommendation.application.service;
 
 import com.project.youtlix.common.application.port.out.DomainEventPublisher;
+import com.project.youtlix.contentlibrary.application.port.out.ContentRepository;
 import com.project.youtlix.contentlibrary.domain.model.Genre;
+import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
 import com.project.youtlix.recommendation.application.port.out.ContentCatalogPort;
 import com.project.youtlix.recommendation.application.port.out.RatingRepository;
@@ -44,6 +46,7 @@ public class RecommendationApplicationService implements RecommendationUseCase {
     private final DomainEventPublisher eventPublisher;
     private final RatingService ratingService;
     private final RecommendationEngine recommendationEngine;
+    private final ContentRepository contentRepository;
 
     /** Creates recommendation application service with default domain services. */
     @Autowired
@@ -52,7 +55,8 @@ public class RecommendationApplicationService implements RecommendationUseCase {
             WatchlistRepository watchlistRepository,
             ContentCatalogPort contentCatalogPort,
             WatchActivityPort watchActivityPort,
-            DomainEventPublisher eventPublisher
+            DomainEventPublisher eventPublisher,
+            ContentRepository contentRepository
     ) {
         this(
                 ratingRepository,
@@ -60,6 +64,7 @@ public class RecommendationApplicationService implements RecommendationUseCase {
                 contentCatalogPort,
                 watchActivityPort,
                 eventPublisher,
+                contentRepository,
                 new RatingService(),
                 new RecommendationEngine()
         );
@@ -72,6 +77,7 @@ public class RecommendationApplicationService implements RecommendationUseCase {
             ContentCatalogPort contentCatalogPort,
             WatchActivityPort watchActivityPort,
             DomainEventPublisher eventPublisher,
+            ContentRepository contentRepository,
             RatingService ratingService,
             RecommendationEngine recommendationEngine
     ) {
@@ -80,6 +86,7 @@ public class RecommendationApplicationService implements RecommendationUseCase {
         this.contentCatalogPort = contentCatalogPort;
         this.watchActivityPort = watchActivityPort;
         this.eventPublisher = eventPublisher;
+        this.contentRepository = contentRepository;
         this.ratingService = ratingService;
         this.recommendationEngine = recommendationEngine;
     }
@@ -128,6 +135,26 @@ public class RecommendationApplicationService implements RecommendationUseCase {
         ));
         return recommendations;
     }
+
+    /**
+     * Converts recommendation list to content responses ready for display.
+     *
+     * @param recommendations generated recommendations
+     * @return list of content responses
+     */
+    @Override
+    public List<ContentResponse> toContentResponses(RecommendationList recommendations) {
+        return recommendations.items().stream()
+                .map(item -> contentRepository.ofId(
+                        new com.project.youtlix.contentlibrary.domain.model.ContentId(item.contentId().value())
+                ))
+                .flatMap(java.util.Optional::stream)
+                .map(ContentResponse::from)
+                .limit(10)
+                .toList();
+    }
+
+
 
     @Override
     public void rate(ViewerId viewerId, ContentId contentId, StarRating stars) {

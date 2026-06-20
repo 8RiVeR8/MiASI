@@ -854,6 +854,11 @@ class ContentLibrarySystemTest {
         }
 
         @Override
+        public List<ContentResponse> toContentResponses(RecommendationList recommendations) {
+            return List.of();
+        }
+
+        @Override
         public void rate(
                 com.project.youtlix.recommendation.domain.model.ViewerId viewerId,
                 com.project.youtlix.recommendation.domain.model.ContentId contentId,

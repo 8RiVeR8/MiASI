@@ -1,9 +1,12 @@
 package com.project.youtlix.recommendation.application.port.in;
 
+import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
 import com.project.youtlix.recommendation.domain.model.ContentId;
 import com.project.youtlix.recommendation.domain.model.RecommendationList;
 import com.project.youtlix.recommendation.domain.model.StarRating;
 import com.project.youtlix.recommendation.domain.model.ViewerId;
+
+import java.util.List;
 
 /**
  * Inbound port for PU11-PU13 recommendation use cases.
@@ -12,6 +15,8 @@ public interface RecommendationUseCase {
 
     /** Generates recommendations for a viewer. */
     RecommendationList generateFor(ViewerId viewerId);
+
+    List<ContentResponse> toContentResponses(RecommendationList recommendations);
 
     /** Rates content with one to five stars. */
     void rate(ViewerId viewerId, ContentId contentId, StarRating stars);

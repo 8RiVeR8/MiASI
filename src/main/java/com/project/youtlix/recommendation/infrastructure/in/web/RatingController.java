@@ -2,19 +2,17 @@ package com.project.youtlix.recommendation.infrastructure.in.web;
 
 import com.project.youtlix.authentication.application.port.out.IdentityProvider;
 import com.project.youtlix.common.infrastructure.in.web.OpenApiConfig;
+import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import com.project.youtlix.recommendation.domain.model.ContentId;
 import com.project.youtlix.recommendation.domain.model.StarRating;
 import com.project.youtlix.recommendation.domain.model.ViewerId;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -41,6 +39,11 @@ public class RatingController {
             @RequestBody RatingRequest request
     ) {
         useCase.rate(currentViewer(authorization), new ContentId(contentId), new StarRating(request.stars()));
+    }
+
+    @GetMapping("/recommended/library")
+    public List<ContentResponse> recommendedLibrary(@RequestHeader("Authorization") String authorization) {
+        return useCase.toContentResponses(useCase.generateFor(currentViewer(authorization)));
     }
 
     private ViewerId currentViewer(String authorization) {
