@@ -6,6 +6,7 @@ import com.project.youtlix.authentication.domain.model.UserIdentity;
 import com.project.youtlix.authentication.domain.model.ViewerId;
 import com.project.youtlix.common.application.port.out.DomainEventPublisher;
 import com.project.youtlix.contentlibrary.application.port.in.ResolvedPlayable;
+import com.project.youtlix.contentlibrary.application.port.in.SeriesContentExpectedException;
 import com.project.youtlix.contentlibrary.application.port.out.ContentRepository;
 import com.project.youtlix.contentlibrary.application.service.ContentLibraryApplicationService;
 import com.project.youtlix.contentlibrary.domain.model.Content;
@@ -26,6 +27,9 @@ import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentControlle
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentMetadataRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
+import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentType;
+import com.project.youtlix.contentlibrary.infrastructure.in.web.EpisodeRequest;
+import com.project.youtlix.contentlibrary.infrastructure.in.web.SeasonRequest;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
 import com.project.youtlix.recommendation.domain.model.RecommendationReason;
 import com.project.youtlix.recommendation.domain.model.RecommendationList;
@@ -62,6 +66,7 @@ class ContentLibrarySystemTest {
         );
 
         controller.create("Bearer jwt", new ContentRequest(
+                ContentType.MOVIE,
                 "Clean Architecture",
                 "System test path",
                 "thumb",
@@ -266,6 +271,7 @@ class ContentLibrarySystemTest {
         );
 
         assertThatThrownBy(() -> controller.create("Bearer jwt", new ContentRequest(
+                ContentType.MOVIE,
                 "Clean Architecture",
                 "System test path",
                 "thumb",
@@ -294,6 +300,7 @@ class ContentLibrarySystemTest {
         );
 
         assertThatThrownBy(() -> controller.create("Bearer jwt", new ContentRequest(
+                ContentType.MOVIE,
                 "Clean Architecture",
                 "System test path",
                 "thumb",
@@ -310,6 +317,85 @@ class ContentLibrarySystemTest {
     }
 
     @Test
+    void seriesCreationCanBeExtendedWithSeasonAndEpisode() {
+        InMemoryContentRepository repository = new InMemoryContentRepository();
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, new NoOpPublisher());
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.LIBRARY_ADMIN)
+        );
+        UUID seriesId = controller.create("Bearer jwt", new ContentRequest(
+                ContentType.SERIES,
+                "Breaking Bad",
+                "Crime drama series",
+                "thumb-breaking-bad",
+                Genre.DRAMA,
+                2008,
+                List.of("crime", "drama"),
+                null,
+                null,
+                List.of()
+        ));
+
+        UUID seasonId = controller.addSeason("Bearer jwt", seriesId, new SeasonRequest(1, "Season 1"));
+        UUID episodeId = controller.addEpisode("Bearer jwt", seriesId, seasonId, new EpisodeRequest(
+                1,
+                "Pilot",
+                3480,
+                "cdn://breaking-bad/s01e01",
+                List.of("pl", "en")
+        ));
+
+        Content stored = repository.ofId(new ContentId(seriesId)).orElseThrow();
+        ResolvedPlayable playable = service.resolvePlayable(episodeId);
+
+        assertThat(stored).isInstanceOfSatisfying(Series.class, series ->
+                assertThat(series.seasons()).singleElement()
+                        .satisfies(season -> {
+                            assertThat(season.id().value()).isEqualTo(seasonId);
+                            assertThat(season.number()).isEqualTo(1);
+                            assertThat(season.title()).isEqualTo("Season 1");
+                            assertThat(season.episodes()).singleElement()
+                                    .satisfies(episode -> {
+                                        assertThat(episode.id().value()).isEqualTo(episodeId);
+                                        assertThat(episode.title()).isEqualTo("Pilot");
+                                    });
+                        }));
+        assertThat(playable.kind()).isEqualTo(ResolvedPlayable.PlayableKind.EPISODE);
+        assertThat(playable.videoFile().uri()).isEqualTo("cdn://breaking-bad/s01e01");
+    }
+
+    @Test
+    void seasonCannotBeAddedToMovieContent() {
+        InMemoryContentRepository repository = new InMemoryContentRepository();
+        ContentLibraryApplicationService service = new ContentLibraryApplicationService(repository, new NoOpPublisher());
+        ContentController controller = new ContentController(
+                service,
+                new NoRecommendations(),
+                new FixedIdentityProvider(Role.LIBRARY_ADMIN)
+        );
+        UUID movieId = controller.create("Bearer jwt", new ContentRequest(
+                ContentType.MOVIE,
+                "John Wick",
+                "Original description",
+                "original-thumb",
+                Genre.ACTION,
+                2014,
+                List.of("action"),
+                6060,
+                "https://www.youtube.com/watch?v=C0BMx-qxsP4",
+                List.of("pl")
+        ));
+
+        assertThat(controller.browse("Bearer jwt", 1, 20).contents()).singleElement()
+                .extracting(ContentResponse::type)
+                .isEqualTo(ContentType.MOVIE.name());
+        assertThatThrownBy(() -> controller.addSeason("Bearer jwt", movieId, new SeasonRequest(1, "Season 1")))
+                .isInstanceOf(SeriesContentExpectedException.class);
+    }
+
+    @Test
     void contentMetadataUpdatePathRunsFromWebAdapterThroughUseCaseAndPublishesEvent() {
         InMemoryContentRepository repository = new InMemoryContentRepository();
         RecordingPublisher publisher = new RecordingPublisher();
@@ -320,6 +406,7 @@ class ContentLibrarySystemTest {
                 new FixedIdentityProvider(Role.LIBRARY_ADMIN)
         );
         UUID contentId = controller.create("Bearer jwt", new ContentRequest(
+                ContentType.MOVIE,
                 "John Wick",
                 "Original description",
                 "original-thumb",
@@ -392,6 +479,7 @@ class ContentLibrarySystemTest {
                 new FixedIdentityProvider(Role.LIBRARY_ADMIN)
         );
         UUID contentId = controller.create("Bearer jwt", new ContentRequest(
+                ContentType.MOVIE,
                 "John Wick",
                 "Original description",
                 "original-thumb",
@@ -479,8 +567,21 @@ class ContentLibrarySystemTest {
 
         @Override
         public Optional<ResolvedPlayable> resolvePlayable(UUID id) {
-            return videoFileOf(new ContentId(id))
-                    .map(videoFile -> new ResolvedPlayable(id, ResolvedPlayable.PlayableKind.MOVIE, videoFile));
+            Optional<VideoFile> movieVideo = videoFileOf(new ContentId(id));
+            if (movieVideo.isPresent()) {
+                return movieVideo.map(videoFile ->
+                        new ResolvedPlayable(id, ResolvedPlayable.PlayableKind.MOVIE, videoFile));
+            }
+            return contents.values()
+                    .stream()
+                    .filter(Series.class::isInstance)
+                    .map(Series.class::cast)
+                    .flatMap(series -> series.seasons().stream())
+                    .flatMap(season -> season.episodes().stream())
+                    .filter(episode -> episode.id().value().equals(id))
+                    .findFirst()
+                    .map(episode ->
+                            new ResolvedPlayable(id, ResolvedPlayable.PlayableKind.EPISODE, episode.videoFile()));
         }
 
         @Override

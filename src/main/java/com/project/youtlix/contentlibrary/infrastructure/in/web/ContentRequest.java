@@ -8,6 +8,7 @@ import java.util.List;
  * Request body used by the library web adapter for content creation and updates.
  */
 public record ContentRequest(
+        ContentType type,
         String title,
         String description,
         String thumbnailUrl,

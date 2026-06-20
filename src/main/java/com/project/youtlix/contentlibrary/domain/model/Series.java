@@ -3,6 +3,8 @@ package com.project.youtlix.contentlibrary.domain.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Series aggregate root composed of seasons and episodes.
@@ -31,7 +33,21 @@ public class Series extends Content {
      * @param season season entity
      */
     public void addSeason(Season season) {
+        Objects.requireNonNull(season, "season must not be null");
+        if (seasons.stream().anyMatch(existing -> existing.number() == season.number())) {
+            throw new IllegalArgumentException("season number already exists in series");
+        }
         seasons.add(season);
+    }
+
+    /**
+     * Finds a season inside this aggregate.
+     *
+     * @param seasonId season id
+     * @return matching season if present
+     */
+    public Optional<Season> seasonById(SeasonId seasonId) {
+        return seasons.stream().filter(season -> season.id().equals(seasonId)).findFirst();
     }
 
     /**

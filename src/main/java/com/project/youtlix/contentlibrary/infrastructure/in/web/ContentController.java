@@ -4,13 +4,17 @@ import com.project.youtlix.authentication.application.port.out.IdentityProvider;
 import com.project.youtlix.authentication.domain.model.UserIdentity;
 import com.project.youtlix.contentlibrary.application.port.in.ContentNotFoundException;
 import com.project.youtlix.contentlibrary.application.port.in.ContentLibraryUseCase;
+import com.project.youtlix.contentlibrary.application.port.in.SeasonNotFoundException;
+import com.project.youtlix.contentlibrary.application.port.in.SeriesContentExpectedException;
 import com.project.youtlix.contentlibrary.domain.model.ContentId;
 import com.project.youtlix.contentlibrary.domain.model.Duration;
+import com.project.youtlix.contentlibrary.domain.model.EpisodeId;
 import com.project.youtlix.contentlibrary.domain.model.Genre;
 import com.project.youtlix.contentlibrary.domain.model.Keyword;
 import com.project.youtlix.contentlibrary.domain.model.Metadata;
 import com.project.youtlix.contentlibrary.domain.model.Page;
 import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
+import com.project.youtlix.contentlibrary.domain.model.SeasonId;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
 import com.project.youtlix.recommendation.domain.model.RecommendedItem;
@@ -122,7 +126,10 @@ public class ContentController {
     @ResponseStatus(HttpStatus.CREATED)
     public UUID create(@RequestHeader("Authorization") String authorization, @RequestBody ContentRequest request) {
         requireLibraryAdmin(authorization);
-        if (hasMovieFields(request)) {
+        if (request.type() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "type is required");
+        }
+        if (request.type() == ContentType.MOVIE) {
             requireCompleteMovieFields(request);
             return useCase.createMovie(
                     toMetadata(request),
@@ -130,7 +137,46 @@ public class ContentController {
                     new VideoFile(request.videoUri(), request.languages())
             ).value();
         }
+        rejectMovieFieldsForSeries(request);
         return useCase.createSeries(toMetadata(request)).value();
+    }
+
+    /**
+     * Adds a season to an existing series.
+     */
+    @PostMapping("/admin/content/{seriesId}/seasons")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UUID addSeason(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable UUID seriesId,
+            @RequestBody SeasonRequest request
+    ) {
+        requireLibraryAdmin(authorization);
+        return useCase.addSeason(new ContentId(seriesId), request.number(), request.title()).value();
+    }
+
+    /**
+     * Adds an episode to an existing series season.
+     */
+    @PostMapping("/admin/content/{seriesId}/seasons/{seasonId}/episodes")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UUID addEpisode(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable UUID seriesId,
+            @PathVariable UUID seasonId,
+            @RequestBody EpisodeRequest request
+    ) {
+        requireLibraryAdmin(authorization);
+        requireCompleteEpisodeFields(request);
+        EpisodeId episodeId = useCase.addEpisode(
+                new ContentId(seriesId),
+                new SeasonId(seasonId),
+                request.number(),
+                request.title(),
+                Duration.ofSeconds(request.durationSeconds()),
+                new VideoFile(request.videoUri(), request.languages())
+        );
+        return episodeId.value();
     }
 
     /**
@@ -208,6 +254,16 @@ public class ContentController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
     }
 
+    @ExceptionHandler(SeasonNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleSeasonNotFound(SeasonNotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", exception.getMessage()));
+    }
+
+    @ExceptionHandler(SeriesContentExpectedException.class)
+    public ResponseEntity<Map<String, String>> handleSeriesExpected(SeriesContentExpectedException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", exception.getMessage()));
+    }
+
     private UserIdentity currentIdentity(String authorization) {
         return identityProvider.currentIdentity(bearerToken(authorization));
     }
@@ -224,11 +280,32 @@ public class ContentController {
                 || request.languages() != null && !request.languages().isEmpty();
     }
 
+    private void rejectMovieFieldsForSeries(ContentRequest request) {
+        if (hasMovieFields(request)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "movie fields are not allowed for series content; add seasons and episodes separately"
+            );
+        }
+    }
+
     private void requireCompleteMovieFields(ContentRequest request) {
         if (request.durationSeconds() == null || request.videoUri() == null || request.videoUri().isBlank()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "durationSeconds and videoUri are required for movie content"
+            );
+        }
+        if (request.durationSeconds() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "duration must be positive");
+        }
+    }
+
+    private void requireCompleteEpisodeFields(EpisodeRequest request) {
+        if (request.durationSeconds() == null || request.videoUri() == null || request.videoUri().isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "durationSeconds and videoUri are required for episode"
             );
         }
         if (request.durationSeconds() <= 0) {

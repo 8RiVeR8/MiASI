@@ -6,6 +6,8 @@ import com.project.youtlix.contentlibrary.domain.model.Duration;
 import com.project.youtlix.contentlibrary.domain.model.Metadata;
 import com.project.youtlix.contentlibrary.domain.model.Page;
 import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
+import com.project.youtlix.contentlibrary.domain.model.EpisodeId;
+import com.project.youtlix.contentlibrary.domain.model.SeasonId;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 
 import java.util.List;
@@ -29,6 +31,19 @@ public interface ContentLibraryUseCase {
 
     /** Adds a series to the library. */
     ContentId createSeries(Metadata metadata);
+
+    /** Adds a season to an existing series. */
+    SeasonId addSeason(ContentId seriesId, int number, String title);
+
+    /** Adds an episode to an existing series season. */
+    EpisodeId addEpisode(
+            ContentId seriesId,
+            SeasonId seasonId,
+            int number,
+            String title,
+            Duration duration,
+            VideoFile videoFile
+    );
 
     /** Updates metadata of existing content. */
     void updateMetadata(ContentId id, Metadata metadata);
