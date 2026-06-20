@@ -35,6 +35,10 @@ build/
 ### Properties ###
 env.properties
 
+### Test logs ###
+test/logs/*
+!test/logs/.gitkeep
+
 ### Local input files ###
 input-diagrams/
 input-docs/

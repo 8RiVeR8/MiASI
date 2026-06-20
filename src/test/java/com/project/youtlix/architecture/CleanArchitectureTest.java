@@ -1,5 +1,6 @@
 package com.project.youtlix.architecture;
 
+import com.project.youtlix.testsupport.annotation.ArchitectureTest;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ArchitectureTest
 class CleanArchitectureTest {
 
     private static final Path MAIN_PACKAGE = Path.of("src/main/java/com/project/youtlix");
