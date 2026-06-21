@@ -22,6 +22,33 @@ src/test/java/com/project/youtlix/
 
 Domyślnie `mvn test` uruchamia wszystko **oprócz** testów oznaczonych tagiem `e2e`.
 
+## Mapowanie na wzorzec DeskFlow (rozdział 4)
+
+| DeskFlow | Youtlix | Pakiet / runner |
+|----------|---------|-----------------|
+| 4.4 Model domenowy | `RatingUnitTest`, `WatchlistUnitTest`, `SeriesUnitTest`, `ContentDomainUnitTest`, `PlaybackDomainUnitTest`… | `.\test-suite unit` |
+| 4.5 Usługi dziedzinowe | `RatingServiceUnitTest`, `RecommendationEngineUnitTest`, `PlaybackServiceUnitTest`, `ContentSearchServiceUnitTest`, `ContentFactoryUnitTest` | `.\test-suite unit` |
+| 4.6 Usługi aplikacyjne | `*UseCaseUnitTest`, `*CrudUnitTest`, `*MissingDataUnitTest` | `.\test-suite unit` |
+| 4.7 Adaptery wyjściowe (JDBC/Supabase) | `SupabaseContentRepositoryIntegrationTest`, `SupabaseRatingRepositoryIntegrationTest`, `SupabaseWatchlistRepositoryIntegrationTest` | `.\test-suite integration` |
+| 4.8 Adaptery REST | `AuthenticationWebMvcIntegrationTest`, testy kontrolerów w `unit/*/infrastructure` | `integration` + `unit` |
+| 4.9 Testy systemowe (pełna ścieżka) | `AdminContentLibraryCycleE2ETest` | `.\test-suite e2e` |
+| 4.10 Zdarzenia domenowe | `InMemoryDomainEventBusUnitTest`, `ContentRemovedEventHandlerUnitTest`, eventy w testach domeny | `unit` + `integration` |
+| 4.11 Architektura | `CleanArchitectureTest`, `DomainIsolationTest`, `ArchitectureRulesTest` | `.\test-suite architecture` |
+
+### Konfiguracja `env.properties` (gitignored)
+
+Wymagane dla `integration` i `e2e`:
+
+```properties
+DB_DATABASE=...
+SUPABASE_URL=...
+SUPABASE_ANON_KEY=...
+TEST_ADMIN_EMAIL=admin@example.com
+TEST_ADMIN_PASSWORD=...
+```
+
+`TEST_ADMIN_*` — konto z rolą `LIBRARY_ADMIN` do testów HTTP i E2E. Bez tych pól testy integracyjne auth/E2E zostaną pominięte (`TestAborted`).
+
 ## Wspólny runner — log + raport HTML
 
 Jedna komenda dla każdej warstwy piramidy:
