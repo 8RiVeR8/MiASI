@@ -30,12 +30,8 @@ import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
 import com.project.youtlix.contentlibrary.domain.model.ContentType;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.EpisodeRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.SeasonRequest;
-import com.project.youtlix.recommendation.domain.model.RecommendationResponse;
+import com.project.youtlix.recommendation.domain.model.*;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
-import com.project.youtlix.recommendation.domain.model.RecommendationReason;
-import com.project.youtlix.recommendation.domain.model.RecommendationList;
-import com.project.youtlix.recommendation.domain.model.RecommendedItem;
-import com.project.youtlix.recommendation.domain.model.StarRating;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -924,6 +920,11 @@ class ContentLibrarySystemTest {
         @Override
         public List<RecommendationResponse> getWatchlist(com.project.youtlix.recommendation.domain.model.ViewerId viewerId) {
             return List.of();
+        }
+
+        @Override
+        public Optional<Rating> getUserRatingForContent(com.project.youtlix.recommendation.domain.model.ViewerId viewerId, com.project.youtlix.recommendation.domain.model.ContentId contentId) {
+            return Optional.empty();
         }
     }
 

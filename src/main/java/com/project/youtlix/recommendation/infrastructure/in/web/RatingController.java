@@ -3,11 +3,8 @@ package com.project.youtlix.recommendation.infrastructure.in.web;
 import com.project.youtlix.authentication.application.port.out.IdentityProvider;
 import com.project.youtlix.common.infrastructure.in.web.OpenApiConfig;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
-import com.project.youtlix.recommendation.domain.model.RecommendationResponse;
+import com.project.youtlix.recommendation.domain.model.*;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
-import com.project.youtlix.recommendation.domain.model.ContentId;
-import com.project.youtlix.recommendation.domain.model.StarRating;
-import com.project.youtlix.recommendation.domain.model.ViewerId;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -40,6 +37,15 @@ public class RatingController {
             @RequestBody RatingRequest request
     ) {
         useCase.rate(currentViewer(authorization), new ContentId(contentId), new StarRating(request.stars()));
+    }
+
+    @GetMapping("/ratings/{contentId}")
+    public UserRatingResponse ratings(@RequestHeader("Authorization") String authorization, @PathVariable UUID contentId) {
+        Rating rating = useCase.getUserRatingForContent(
+                currentViewer(authorization),
+                new ContentId(contentId)
+        ).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Rating not found for this content"));
+        return new UserRatingResponse(contentId, rating.stars().value(), rating.ratedAt());
     }
 
     @GetMapping("/recommended/library")

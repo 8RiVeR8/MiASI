@@ -211,7 +211,10 @@ public class RecommendationApplicationService implements RecommendationUseCase {
         );
     }
 
-
+    @Override
+    public Optional<Rating> getUserRatingForContent(ViewerId viewerId, ContentId contentId) {
+        return ratingRepository.ofViewerAndContent(viewerId, contentId);
+    }
 
     @Override
     public void rate(ViewerId viewerId, ContentId contentId, StarRating stars) {

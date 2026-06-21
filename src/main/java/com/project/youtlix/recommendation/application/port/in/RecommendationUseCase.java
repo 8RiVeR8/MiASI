@@ -1,10 +1,6 @@
 package com.project.youtlix.recommendation.application.port.in;
 
-import com.project.youtlix.recommendation.domain.model.RecommendationResponse;
-import com.project.youtlix.recommendation.domain.model.ContentId;
-import com.project.youtlix.recommendation.domain.model.RecommendationList;
-import com.project.youtlix.recommendation.domain.model.StarRating;
-import com.project.youtlix.recommendation.domain.model.ViewerId;
+import com.project.youtlix.recommendation.domain.model.*;
 
 import java.util.List;
 
@@ -32,4 +28,7 @@ public interface RecommendationUseCase {
 
     /** Retrieves all items from viewer watchlist as content responses. */
     List<RecommendationResponse> getWatchlist(ViewerId viewerId);
+
+    /** Get rating that viewer gave to specific content. */
+    java.util.Optional<Rating> getUserRatingForContent(ViewerId viewerId, ContentId contentId);
 }
