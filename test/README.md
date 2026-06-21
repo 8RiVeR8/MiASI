@@ -54,6 +54,7 @@ TEST_ADMIN_PASSWORD=...
 Jedna komenda dla każdej warstwy piramidy:
 
 ```powershell
+.\test-suite all            # wszystkie warstwy (unit → architecture → integration → e2e)
 .\test-suite unit
 .\test-suite integration
 .\test-suite architecture
@@ -82,6 +83,8 @@ Po każdym uruchomieniu zapisuje w `test/logs/`:
 | `{suite}-YYYY-MM-DD_HH-mm-ss.log` | pełny output Maven |
 | `{suite}-YYYY-MM-DD_HH-mm-ss.html` | raport HTML (moduły, statusy, błędy) |
 | `latest-{suite}.log` / `.html` | ostatnie uruchomienie danej warstwy |
+| `all-....log` / `all-....html` | zbiorczy log i podsumowanie HTML (`.\test-suite all`) |
+| `latest-all.log` / `.html` | ostatnie pełne uruchomienie wszystkich warstw |
 
 Dla `unit` dodatkowo utrzymywane są `latest.log` / `latest.html` (kompatybilność wsteczna).
 
