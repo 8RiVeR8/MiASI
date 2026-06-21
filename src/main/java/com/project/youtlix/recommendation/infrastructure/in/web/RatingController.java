@@ -39,7 +39,7 @@ public class RatingController {
         useCase.rate(currentViewer(authorization), new ContentId(contentId), new StarRating(request.stars()));
     }
 
-    @GetMapping("/ratings/{contentId}")
+    @GetMapping("/stars/{contentId}")
     public UserRatingResponse ratings(@RequestHeader("Authorization") String authorization, @PathVariable UUID contentId) {
         Rating rating = useCase.getUserRatingForContent(
                 currentViewer(authorization),
