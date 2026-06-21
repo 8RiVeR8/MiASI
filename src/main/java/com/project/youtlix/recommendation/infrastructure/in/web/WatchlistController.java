@@ -49,6 +49,11 @@ public class WatchlistController {
         useCase.removeFromWatchlist(currentViewer(authorization), new ContentId(contentId));
     }
 
+    @GetMapping("/present/{contentId}")
+    public boolean isPresent(@RequestHeader("Authorization") String authorization, @PathVariable UUID contentId) {
+        return useCase.isInWatchlist(currentViewer(authorization), new ContentId(contentId));
+    }
+
     /** Returns all items from watchlist. */
     @GetMapping
     public List<RecommendationResponse> getAll(@RequestHeader("Authorization") String authorization) {

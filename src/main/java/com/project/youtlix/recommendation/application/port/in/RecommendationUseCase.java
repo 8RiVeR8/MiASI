@@ -31,4 +31,6 @@ public interface RecommendationUseCase {
 
     /** Get rating that viewer gave to specific content. */
     java.util.Optional<Rating> getUserRatingForContent(ViewerId viewerId, ContentId contentId);
+
+    boolean isInWatchlist(ViewerId viewerId, ContentId contentId);
 }

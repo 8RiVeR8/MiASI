@@ -926,6 +926,11 @@ class ContentLibrarySystemTest {
         public Optional<Rating> getUserRatingForContent(com.project.youtlix.recommendation.domain.model.ViewerId viewerId, com.project.youtlix.recommendation.domain.model.ContentId contentId) {
             return Optional.empty();
         }
+
+        @Override
+        public boolean isInWatchlist(com.project.youtlix.recommendation.domain.model.ViewerId viewerId, com.project.youtlix.recommendation.domain.model.ContentId contentId) {
+            return false;
+        }
     }
 
     static class RecordingRecommendations extends NoRecommendations {

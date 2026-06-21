@@ -212,6 +212,15 @@ public class RecommendationApplicationService implements RecommendationUseCase {
     }
 
     @Override
+    public boolean isInWatchlist(ViewerId viewerId, ContentId contentId) {
+        return watchlistRepository.ofViewer(viewerId)
+                .map(watchlist -> watchlist.items().stream()
+                        .anyMatch(item -> item.contentId().equals(contentId))
+                )
+                .orElse(false);
+    }
+
+    @Override
     public Optional<Rating> getUserRatingForContent(ViewerId viewerId, ContentId contentId) {
         return ratingRepository.ofViewerAndContent(viewerId, contentId);
     }
