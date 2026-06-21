@@ -193,7 +193,7 @@ public class SupabaseContentRepository implements ContentRepository {
                 row.releaseYear(),
                 keywords(row.id())
         );
-        if ("MOVIE".equals(row.contentType())) {
+        if (row.contentType() == ContentType.MOVIE) {
             MovieDetails details = movieDetails(row.id())
                     .orElseThrow(() -> new IllegalStateException("movie details not found: " + row.id()));
             return new Movie(contentId, metadata, details.duration(), details.videoFile(), row.available(), false);
