@@ -6,8 +6,10 @@ import com.project.youtlix.recommendation.application.port.in.RecommendationUseC
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import com.project.youtlix.recommendation.domain.model.ContentId;
 import com.project.youtlix.recommendation.domain.model.ViewerId;
+import com.project.youtlix.recommendation.domain.model.RecommendationResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -44,6 +47,12 @@ public class WatchlistController {
     @DeleteMapping("/{contentId}")
     public void remove(@RequestHeader("Authorization") String authorization, @PathVariable UUID contentId) {
         useCase.removeFromWatchlist(currentViewer(authorization), new ContentId(contentId));
+    }
+
+    /** Returns all items from watchlist. */
+    @GetMapping
+    public List<RecommendationResponse> getAll(@RequestHeader("Authorization") String authorization) {
+        return useCase.getWatchlist(currentViewer(authorization));
     }
 
     private ViewerId currentViewer(String authorization) {

@@ -247,6 +247,20 @@ public class RecommendationApplicationService implements RecommendationUseCase {
         watchlistRepository.removeFromWatchlists(contentId);
     }
 
+    @Override
+    public List<RecommendationResponse> getWatchlist(ViewerId viewerId) {
+        return watchlistRepository.ofViewer(viewerId)
+                .map(watchlist -> watchlist.items().stream()
+                        .map(item -> contentRepository.ofId(
+                                new com.project.youtlix.contentlibrary.domain.model.ContentId(item.contentId().value())
+                        ))
+                        .flatMap(java.util.Optional::stream)
+                        .map(this::mapToRecommendationResponse)
+                        .toList()
+                )
+                .orElse(List.of());
+    }
+
     private void scoreGenre(Map<Genre, Integer> genreScore, ContentId contentId, int score) {
         Genre genre = contentCatalogPort.metadataOf(contentId).genre();
         genreScore.merge(genre, score, Integer::sum);

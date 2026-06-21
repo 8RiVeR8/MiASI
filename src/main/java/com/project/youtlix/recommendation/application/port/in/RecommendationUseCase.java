@@ -29,4 +29,7 @@ public interface RecommendationUseCase {
 
     /** Removes deleted content from every watchlist. */
     void removeFromWatchlists(ContentId contentId);
+
+    /** Retrieves all items from viewer watchlist as content responses. */
+    List<RecommendationResponse> getWatchlist(ViewerId viewerId);
 }

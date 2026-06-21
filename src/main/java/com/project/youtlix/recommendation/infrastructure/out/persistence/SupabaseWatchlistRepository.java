@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -54,7 +55,7 @@ public class SupabaseWatchlistRepository implements WatchlistRepository {
                 UUID.randomUUID(),
                 persistedId,
                 item.contentId().value(),
-                item.addedOn()
+                Timestamp.from(item.addedOn())
         ));
     }
 

@@ -920,6 +920,11 @@ class ContentLibrarySystemTest {
         @Override
         public void removeFromWatchlists(com.project.youtlix.recommendation.domain.model.ContentId contentId) {
         }
+
+        @Override
+        public List<RecommendationResponse> getWatchlist(com.project.youtlix.recommendation.domain.model.ViewerId viewerId) {
+            return List.of();
+        }
     }
 
     static class RecordingRecommendations extends NoRecommendations {
