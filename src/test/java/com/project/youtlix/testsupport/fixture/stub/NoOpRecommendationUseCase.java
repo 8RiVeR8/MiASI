@@ -1,14 +1,16 @@
 package com.project.youtlix.testsupport.fixture.stub;
 
-import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
 import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
 import com.project.youtlix.recommendation.domain.model.ContentId;
+import com.project.youtlix.recommendation.domain.model.Rating;
 import com.project.youtlix.recommendation.domain.model.RecommendationList;
+import com.project.youtlix.recommendation.domain.model.RecommendationResponse;
 import com.project.youtlix.recommendation.domain.model.StarRating;
 import com.project.youtlix.recommendation.domain.model.ViewerId;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 public class NoOpRecommendationUseCase implements RecommendationUseCase {
 
@@ -18,7 +20,7 @@ public class NoOpRecommendationUseCase implements RecommendationUseCase {
     }
 
     @Override
-    public List<ContentResponse> toContentResponses(RecommendationList recommendations) {
+    public List<RecommendationResponse> toContentResponses(RecommendationList recommendations) {
         return List.of();
     }
 
@@ -36,5 +38,20 @@ public class NoOpRecommendationUseCase implements RecommendationUseCase {
 
     @Override
     public void removeFromWatchlists(ContentId contentId) {
+    }
+
+    @Override
+    public List<RecommendationResponse> getWatchlist(ViewerId viewerId) {
+        return List.of();
+    }
+
+    @Override
+    public Optional<Rating> getUserRatingForContent(ViewerId viewerId, ContentId contentId) {
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean isInWatchlist(ViewerId viewerId, ContentId contentId) {
+        return false;
     }
 }

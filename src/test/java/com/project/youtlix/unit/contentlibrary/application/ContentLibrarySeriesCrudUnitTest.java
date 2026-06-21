@@ -5,7 +5,7 @@ import com.project.youtlix.contentlibrary.domain.model.Genre;
 import com.project.youtlix.contentlibrary.domain.model.event.ContentRemoved;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
-import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentType;
+import com.project.youtlix.contentlibrary.domain.model.ContentType;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.EpisodeRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.SeasonRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentController;
@@ -60,7 +60,7 @@ class ContentLibrarySeriesCrudUnitTest {
                 List.of("pl")
         ));
 
-        ContentResponse afterCreate = controller.browse("Bearer jwt", 1, 20).contents().getFirst();
+        ContentResponse afterCreate = controller.browse("Bearer jwt", 1, 20).getFirst();
         assertThat(afterCreate.title()).isEqualTo(TEST_MARKER + "-original");
         assertThat(afterCreate.seasons()).hasSize(1);
 
@@ -77,14 +77,14 @@ class ContentLibrarySeriesCrudUnitTest {
                 List.of()
         ));
 
-        ContentResponse afterUpdate = controller.browse("Bearer jwt", 1, 20).contents().getFirst();
+        ContentResponse afterUpdate = controller.browse("Bearer jwt", 1, 20).getFirst();
         assertThat(afterUpdate.title()).isEqualTo(TEST_MARKER + "-updated");
         assertThat(afterUpdate.seasons().getFirst().episodes().getFirst().id()).isEqualTo(episodeId);
 
         publisher.clear();
         controller.delete("Bearer jwt", seriesId);
 
-        assertThat(controller.browse("Bearer jwt", 1, 20).contents()).isEmpty();
+        assertThat(controller.browse("Bearer jwt", 1, 20)).isEmpty();
         assertThat(repository.contains(new com.project.youtlix.contentlibrary.domain.model.ContentId(seriesId))).isFalse();
         assertThat(publisher.events())
                 .anyMatch(event -> event instanceof ContentRemoved);

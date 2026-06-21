@@ -31,7 +31,7 @@ import com.project.youtlix.contentlibrary.domain.model.event.ContentRemoved;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentController;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse;
-import com.project.youtlix.contentlibrary.infrastructure.in.web.ContentType;
+import com.project.youtlix.contentlibrary.domain.model.ContentType;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.EpisodeRequest;
 import com.project.youtlix.contentlibrary.infrastructure.in.web.SeasonRequest;
 import com.project.youtlix.recommendation.domain.model.RecommendationReason;
@@ -77,8 +77,7 @@ class ContentControllerUnitTest {
                 List.of("pl")
         ));
 
-        ContentController.LibraryPageResponse response = controller.browse("Bearer jwt", 1, 20);
-        List<ContentResponse> contents = response.contents();
+        List<ContentResponse> contents = controller.browse("Bearer jwt", 1, 20);
 
         assertThat(contents).hasSize(1);
         assertThat(contents.getFirst().type()).isEqualTo("MOVIE");
@@ -92,11 +91,6 @@ class ContentControllerUnitTest {
                 .anySatisfy(event -> assertThat(event)
                         .isInstanceOfSatisfying(ContentAdded.class, added ->
                                 assertThat(added.title()).isEqualTo("Clean Architecture")));
-        assertThat(response.pagination().page()).isEqualTo(1);
-        assertThat(response.pagination().size()).isEqualTo(20);
-        assertThat(response.pagination().itemCount()).isEqualTo(1);
-        assertThat(response.recommendations()).hasSize(1);
-        assertThat(recommendations.requestedViewerId).isEqualTo(identityProvider.viewerId().value());
     }
 
     @Test
@@ -112,7 +106,7 @@ class ContentControllerUnitTest {
         service.createMovie(new Metadata(
                 "Clean Architecture",
                 "Hexagonal architecture documentary",
-                "thumb-clean",
+                ContentType.MOVIE, "thumb-clean",
                 Genre.DOCUMENTARY,
                 2026,
                 List.of(new Keyword("Architecture"))
@@ -120,7 +114,7 @@ class ContentControllerUnitTest {
         service.createMovie(new Metadata(
                 "Comedy Night",
                 "Stand-up special",
-                "thumb-comedy",
+                ContentType.MOVIE, "thumb-comedy",
                 Genre.COMEDY,
                 2024,
                 List.of(new Keyword("standup"))
@@ -165,7 +159,7 @@ class ContentControllerUnitTest {
         service.createMovie(new Metadata(
                 "Clean Architecture",
                 "Hexagonal architecture documentary",
-                "thumb-clean",
+                ContentType.MOVIE, "thumb-clean",
                 Genre.DOCUMENTARY,
                 2026,
                 List.of(new Keyword("architecture"))
@@ -173,7 +167,7 @@ class ContentControllerUnitTest {
         service.createMovie(new Metadata(
                 "Comedy Night",
                 "Stand-up special",
-                "thumb-comedy",
+                ContentType.MOVIE, "thumb-comedy",
                 Genre.COMEDY,
                 2024,
                 List.of(new Keyword("standup"))
@@ -181,7 +175,7 @@ class ContentControllerUnitTest {
         service.createMovie(new Metadata(
                 "Old Documentary",
                 "Older documentary",
-                "thumb-old",
+                ContentType.MOVIE, "thumb-old",
                 Genre.DOCUMENTARY,
                 2020,
                 List.of(new Keyword("archive"))
@@ -189,7 +183,7 @@ class ContentControllerUnitTest {
         service.createMovie(new Metadata(
                 "Architecture Clean",
                 "Same words but title does not start with filter phrase",
-                "thumb-architecture-clean",
+                ContentType.MOVIE, "thumb-architecture-clean",
                 Genre.DOCUMENTARY,
                 2026,
                 List.of(new Keyword("design"))
@@ -222,7 +216,7 @@ class ContentControllerUnitTest {
         service.createMovie(new Metadata(
                 "Clean Code",
                 "Engineering documentary",
-                "thumb-clean-code",
+                ContentType.MOVIE, "thumb-clean-code",
                 Genre.DOCUMENTARY,
                 2026,
                 List.of(new Keyword("architecture"))
@@ -230,7 +224,7 @@ class ContentControllerUnitTest {
         service.createMovie(new Metadata(
                 "Clean Comedy",
                 "Comedy special",
-                "thumb-clean-comedy",
+                ContentType.MOVIE, "thumb-clean-comedy",
                 Genre.COMEDY,
                 2026,
                 List.of(new Keyword("architecture"))
@@ -352,7 +346,7 @@ class ContentControllerUnitTest {
 
         Content stored = repository.ofId(new ContentId(seriesId)).orElseThrow();
         ResolvedPlayable playable = service.resolvePlayable(episodeId);
-        ContentResponse response = controller.browse("Bearer jwt", 1, 20).contents().getFirst();
+        ContentResponse response = controller.browse("Bearer jwt", 1, 20).getFirst();
 
         assertThat(stored).isInstanceOfSatisfying(Series.class, series ->
                 assertThat(series.seasons()).singleElement()
@@ -430,7 +424,7 @@ class ContentControllerUnitTest {
                 List.of("en")
         ));
 
-        ContentResponse response = controller.browse("Bearer jwt", 1, 20).contents().getFirst();
+        ContentResponse response = controller.browse("Bearer jwt", 1, 20).getFirst();
         ResolvedPlayable playable = service.resolvePlayable(episodeId);
 
         assertThat(response.seasons()).singleElement()
@@ -477,7 +471,7 @@ class ContentControllerUnitTest {
                 List.of("pl")
         ));
 
-        assertThat(controller.browse("Bearer jwt", 1, 20).contents()).singleElement()
+        assertThat(controller.browse("Bearer jwt", 1, 20)).singleElement()
                 .extracting(ContentResponse::type)
                 .isEqualTo(ContentType.MOVIE.name());
         assertThatThrownBy(() -> controller.addSeason("Bearer jwt", movieId, new SeasonRequest(1, "Season 1")))
@@ -529,7 +523,7 @@ class ContentControllerUnitTest {
                 List.of()
         ));
 
-        ContentResponse response = controller.browse("Bearer jwt", 1, 20).contents().getFirst();
+        ContentResponse response = controller.browse("Bearer jwt", 1, 20).getFirst();
 
         assertThat(response.id()).isEqualTo(seriesId);
         assertThat(response.type()).isEqualTo(ContentType.SERIES.name());
@@ -588,9 +582,9 @@ class ContentControllerUnitTest {
                 List.of("pl", "en")
         ));
 
-        ContentController.LibraryPageResponse response = controller.browse("Bearer jwt", 1, 20);
+        List<ContentResponse> response = controller.browse("Bearer jwt", 1, 20);
 
-        assertThat(response.contents()).singleElement()
+        assertThat(response).singleElement()
                 .satisfies(content -> {
                     assertThat(content.id()).isEqualTo(contentId);
                     assertThat(content.title()).isEqualTo("John Wick: Chapter 1");
@@ -661,7 +655,7 @@ class ContentControllerUnitTest {
 
         controller.delete("Bearer jwt", contentId);
 
-        assertThat(controller.browse("Bearer jwt", 1, 20).contents()).isEmpty();
+        assertThat(controller.browse("Bearer jwt", 1, 20)).isEmpty();
         assertThat(publisher.events())
                 .anySatisfy(event -> assertThat(event)
                         .isInstanceOfSatisfying(ContentRemoved.class, removed ->
@@ -703,7 +697,7 @@ class ContentControllerUnitTest {
 
         controller.delete("Bearer jwt", seriesId);
 
-        assertThat(controller.browse("Bearer jwt", 1, 20).contents()).isEmpty();
+        assertThat(controller.browse("Bearer jwt", 1, 20)).isEmpty();
         assertThatThrownBy(() -> service.resolvePlayable(episodeId))
                 .isInstanceOf(PlayableNotFoundException.class);
         assertThat(publisher.events())

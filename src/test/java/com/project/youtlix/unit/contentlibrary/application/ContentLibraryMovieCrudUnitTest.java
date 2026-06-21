@@ -8,6 +8,7 @@ import com.project.youtlix.contentlibrary.domain.model.Duration;
 import com.project.youtlix.contentlibrary.domain.model.Genre;
 import com.project.youtlix.contentlibrary.domain.model.Keyword;
 import com.project.youtlix.contentlibrary.domain.model.Metadata;
+import com.project.youtlix.contentlibrary.domain.model.ContentType;
 import com.project.youtlix.contentlibrary.domain.model.Page;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.testsupport.annotation.UnitTest;
@@ -38,6 +39,7 @@ class ContentLibraryMovieCrudUnitTest {
         Metadata originalMetadata = new Metadata(
                 TEST_MARKER + "-original",
                 "Original description",
+                ContentType.MOVIE,
                 "thumb-original",
                 Genre.DOCUMENTARY,
                 2026,
@@ -46,6 +48,7 @@ class ContentLibraryMovieCrudUnitTest {
         Metadata updatedMetadata = new Metadata(
                 TEST_MARKER + "-updated",
                 "Updated description",
+                ContentType.MOVIE,
                 "thumb-updated",
                 Genre.DOCUMENTARY,
                 2026,

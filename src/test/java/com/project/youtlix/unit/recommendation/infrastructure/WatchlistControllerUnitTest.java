@@ -1,13 +1,12 @@
 package com.project.youtlix.unit.recommendation.infrastructure;
 
-import com.project.youtlix.recommendation.application.port.in.RecommendationUseCase;
 import com.project.youtlix.recommendation.domain.model.ContentId;
-import com.project.youtlix.recommendation.domain.model.StarRating;
 import com.project.youtlix.recommendation.domain.model.ViewerId;
 import com.project.youtlix.recommendation.infrastructure.in.web.WatchlistController;
 import com.project.youtlix.testsupport.annotation.UnitTest;
 import com.project.youtlix.testsupport.fixture.FixedIdentityProvider;
 import com.project.youtlix.testsupport.fixture.ViewerTestAccount;
+import com.project.youtlix.testsupport.fixture.stub.NoOpRecommendationUseCase;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -32,27 +31,11 @@ class WatchlistControllerUnitTest {
         assertThat(useCase.contentId.value()).isEqualTo(contentId);
     }
 
-    static class RecordingRecommendationUseCase implements RecommendationUseCase {
+    static class RecordingRecommendationUseCase extends NoOpRecommendationUseCase {
         ViewerId viewerId;
         ContentId contentId;
         boolean added;
         boolean removed;
-
-        @Override
-        public com.project.youtlix.recommendation.domain.model.RecommendationList generateFor(ViewerId viewerId) {
-            return null;
-        }
-
-        @Override
-        public java.util.List<com.project.youtlix.contentlibrary.infrastructure.in.web.ContentResponse> toContentResponses(
-                com.project.youtlix.recommendation.domain.model.RecommendationList recommendations
-        ) {
-            return java.util.List.of();
-        }
-
-        @Override
-        public void rate(ViewerId viewerId, ContentId contentId, StarRating stars) {
-        }
 
         @Override
         public void addToWatchlist(ViewerId viewerId, ContentId contentId) {
@@ -66,10 +49,6 @@ class WatchlistControllerUnitTest {
             this.viewerId = viewerId;
             this.contentId = contentId;
             this.removed = true;
-        }
-
-        @Override
-        public void removeFromWatchlists(ContentId contentId) {
         }
     }
 }

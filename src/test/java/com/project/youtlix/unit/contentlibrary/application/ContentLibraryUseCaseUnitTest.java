@@ -6,6 +6,7 @@ import com.project.youtlix.contentlibrary.domain.model.Duration;
 import com.project.youtlix.contentlibrary.domain.model.Genre;
 import com.project.youtlix.contentlibrary.domain.model.Keyword;
 import com.project.youtlix.contentlibrary.domain.model.Metadata;
+import com.project.youtlix.contentlibrary.domain.model.ContentType;
 import com.project.youtlix.contentlibrary.domain.model.Page;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.testsupport.annotation.UnitTest;
@@ -28,7 +29,7 @@ class ContentLibraryUseCaseUnitTest {
         Metadata metadata = new Metadata(
                 "DDD Movie",
                 "Architecture",
-                "thumb",
+                ContentType.MOVIE, "thumb",
                 Genre.DOCUMENTARY,
                 2026,
                 List.of(new Keyword("architecture"))

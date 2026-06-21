@@ -6,6 +6,7 @@ import com.project.youtlix.contentlibrary.domain.model.Duration;
 import com.project.youtlix.contentlibrary.domain.model.Genre;
 import com.project.youtlix.contentlibrary.domain.model.Keyword;
 import com.project.youtlix.contentlibrary.domain.model.Metadata;
+import com.project.youtlix.contentlibrary.domain.model.ContentType;
 import com.project.youtlix.contentlibrary.domain.model.Movie;
 import com.project.youtlix.contentlibrary.domain.model.SearchCriteria;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
@@ -74,7 +75,7 @@ class ContentSearchServiceUnitTest {
     private Movie movie(String title, Genre genre, int year, String keyword) {
         Movie movie = new Movie(
                 ContentId.newId(),
-                new Metadata(title, "desc", "thumb", genre, year, List.of(new Keyword(keyword))),
+                new Metadata(title, "desc", ContentType.MOVIE, "thumb", genre, year, List.of(new Keyword(keyword))),
                 Duration.ofSeconds(120),
                 new VideoFile("cdn://" + title, List.of("pl"))
         );

@@ -5,6 +5,7 @@ import com.project.youtlix.contentlibrary.domain.model.Duration;
 import com.project.youtlix.contentlibrary.domain.model.Genre;
 import com.project.youtlix.contentlibrary.domain.model.Keyword;
 import com.project.youtlix.contentlibrary.domain.model.Metadata;
+import com.project.youtlix.contentlibrary.domain.model.ContentType;
 import com.project.youtlix.contentlibrary.domain.model.Movie;
 import com.project.youtlix.contentlibrary.domain.model.VideoFile;
 import com.project.youtlix.contentlibrary.domain.model.event.ContentAdded;
@@ -42,6 +43,6 @@ class ContentDomainUnitTest {
     }
 
     private Metadata metadata(String title) {
-        return new Metadata(title, "Description", "thumb", Genre.ACTION, 2025, List.of(new Keyword("hero")));
+        return new Metadata(title, "Description", ContentType.MOVIE, "thumb", Genre.ACTION, 2025, List.of(new Keyword("hero")));
     }
 }
